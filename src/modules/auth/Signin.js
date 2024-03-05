@@ -9,7 +9,7 @@ const Signin = () => {
     const auth = useSelector(state => state.userAuth);
     const navigate = useNavigate();
     const [data, setData] = useState({
-        email: '',
+        loginId: '',
         password: ''
     })
     const handleSubmit = async (e) => {
@@ -19,7 +19,7 @@ const Signin = () => {
     if (auth.authenticate) {
         setTimeout(() => {
             return navigate("/");
-        }, "2000");
+        }, "4000");
     }
     return (
         <div className="bg-light h-screen flex items-center justify-center">
@@ -27,17 +27,17 @@ const Signin = () => {
                 <div className=" text-4xl font-extrabold">Welcome Back</div>
                 <div className=" text-xl font-light ">Sign in to get explored</div>
                 {
-                    auth.message == "" ? <p className="text-red-600 font-bold capitalize">{auth.errors}</p> : <p className="text-green-600 font-bold capitalize" >{auth.message}</p>
+                    auth.message == "" ? <p className="text-red-600 font-bold capitalize">{auth.errors}</p> : <p className="text-success-600 font-bold capitalize" >{auth.message}</p>
                 }
                 <form className="flex flex-col items-center w-full" onSubmit={(e) => handleSubmit(e)}>
                     <div className="mb-6 w-[75%]">
-                        <LabelModule title="Email address" for="email" />
+                        <LabelModule title="Email or Number" for="loginId" />
                         <InputModule
-                            type="email"
-                            name="email"
+                            type="text"
+                            name="loginId"
                             placeholder="Enter your email"
-                            value={data.email}
-                            onChange={(e) => setData({ ...data, email: e.target.value })}
+                            value={data.loginId}
+                            onChange={(e) => setData({ ...data, loginId: e.target.value })}
                         />
                     </div>
                     <div className="mb-6 w-[75%]">

@@ -2,6 +2,7 @@
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
+    "./node_modules/flowbite/**/*.js"
   ],
   theme: {
     extend: {
@@ -10,7 +11,9 @@ module.exports = {
         'secondary': "#f3f5ff",
         'light': "#f9faff",
         'denger': "red",
-        'green': "#00FF00",
+        'succss': "#00FF00",
+        'peach': "#FFECE2",
+        'pink': "#FFE6E6",
       },
     },
   },

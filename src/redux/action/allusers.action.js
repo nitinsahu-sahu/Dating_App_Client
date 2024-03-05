@@ -6,7 +6,7 @@ export const getAllUsers = () => {
       dispatch({
         type: authConstants.GET_USERS_REQUEST
       });
-      await axios.get(`/users/${userInfo._id}`).then(function (response) {
+      await axios.get(`/users/${userInfo._id}/${userInfo.showme}`).then(function (response) {
         dispatch({
           type: authConstants.GET_USERS_SUCCESS,
           payload: {

@@ -83,12 +83,13 @@ export const isUserLoggedIn = () => {
 }
 
 
-export const signout = () => {
+export const logout = () => {
   return async dispatch => {
     dispatch({
       type: authConstants.LOGOUT_REQUEST
     });
     await axios.post(`/signout`).then((response) => {
+      alert("Message: Signout successfully.")
       localStorage.clear()
       dispatch({
         type: authConstants.LOGOUT_SUCCESS,
@@ -101,7 +102,7 @@ export const signout = () => {
       dispatch({
         type: authConstants.LOGOUT_FAILURE,
         payload: {
-          error: error.data.error
+          error: "There was technical issue"
         }
       });
     })

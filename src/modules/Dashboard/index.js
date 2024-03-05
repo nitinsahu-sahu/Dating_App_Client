@@ -5,7 +5,7 @@ import axios from "../../redux/helper/axios";
 import { InputModule } from '../../components/formField/FormField'
 import { FiSend } from "react-icons/fi";
 import { GoPlusCircle } from "react-icons/go";
-import { isUserLoggedIn } from '../../redux/action/userAuth.action.js';
+import { logout } from '../../redux/action/userAuth.action.js';
 import { HiDotsVertical } from "react-icons/hi";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -13,42 +13,33 @@ import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { getAllUsers } from '../../redux/action/allusers.action.js';
-
+import { RxCross2 } from "react-icons/rx";
 const Dashboard = () => {
-	const user = useSelector(state => state.userAuth);
 	const users = useSelector(state => state.usersList.allusers);
 	const dispatch = useDispatch()
 	const info = JSON.parse(localStorage.getItem("u_info"))
-
 	const [conversations, setConversations] = useState([])
 	const [messages, setMessages] = useState({})
 	const [message, setMessage] = useState('')
-	// const [users, setUsers] = useState([])
 	const [socket, setSocket] = useState(null)
 	const [online, setOnline] = useState([])
 	const messageRef = useRef(null)
 	const [anchorEl, setAnchorEl] = useState(null);
 	const open = Boolean(anchorEl);
 	const [emojiShow, setEmojiShow] = useState(false)
+	const [sideBarShow, setSideBarShow] = useState(false)
 	const handleClick = (event) => {
 		setAnchorEl(event.currentTarget);
 	};
 	const handleClose = () => {
 		setAnchorEl(null);
 	};
-	let logout = async () => {
-		await axios.post(`/signout`).then(function (response) {
-			alert(response.data.message)
-			localStorage.clear()
-			dispatch(isUserLoggedIn())
-		}).catch((error) => {
-			alert({ error: "Session time out" });
-		})
-	}
 	useEffect(() => {
 		dispatch(getAllUsers())
 	}, [])
-
+	// useEffect(() => {
+	// 	dispatch(logout())
+	// }, [])
 	useEffect(() => {
 		setSocket(io('http://localhost:8080'))
 	}, [])
@@ -130,7 +121,8 @@ const Dashboard = () => {
 				<div className='items-center my-5 mx-5'>
 					<div className='flex justify-between'>
 						<div className='flex'>
-							<div className='cursor-pointer grid content-center'>
+
+							<div className='cursor-pointer grid content-center' data-drawer-target="drawer-example" data-drawer-show="drawer-example" aria-controls="drawer-example" >
 								<img
 									src={`http://localhost:8000/public/${info?.profile}`}
 									width={60}
@@ -144,7 +136,7 @@ const Dashboard = () => {
 							</div>
 						</div>
 						<div
-							className='grid content-center'
+							className='grid content-center cursor-pointer'
 							id="basic-button"
 							aria-controls={open ? 'basic-menu' : undefined}
 							aria-haspopup="true"
@@ -172,11 +164,60 @@ const Dashboard = () => {
 						>
 							<MenuItem onClick={handleClose}>Profile</MenuItem>
 							<MenuItem onClick={handleClose}>My account</MenuItem>
-							<MenuItem onClick={logout}>Logout</MenuItem>
+							<MenuItem onClick={() => dispatch(logout())}>Logout</MenuItem>
 						</Menu>
 					</div>
 				</div>
 				<hr />
+				<div id="drawer-example" class="fixed top-0 left-0 z-40 h-screen  overflow-y-auto transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800" tabindex="-1" aria-labelledby="drawer-label">
+					<div className='bg-peach px-3 pt-3 pb-1'>
+						<div data-drawer-hide="drawer-example" aria-controls="drawer-example" className='flex justify-end dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800  rounded-lg' >
+							<RxCross2 size={25} className='border border-black rounded-md cursor-pointer' />
+							<span class="sr-only">Close menu</span>
+						</div>
+						<div className='pt-10'>
+							<p className='text-lg font-semibold'>Profile</p>
+						</div>
+					</div>
+					<div className='p-3'>
+						<div className='flex justify-center ' style={{ marginTop: -47 }}>
+							<img
+								src={`http://localhost:8000/public/${info?.profile}`}
+								width={80}
+								height={80}
+								className='border border-primary p-[2px] rounded-full min-w-10'
+							/>
+						</div>
+						<div className='mt-6 bg-pink pl-2'>
+							<div className='pb-1.5 pt-3'>
+								<p className='text-lg font-bold'>Fullname</p>
+								<p className='ml-1 capitalize'>{info?.fullname}</p>
+							</div>
+							<div className='py-1.5'>
+								<p className='text-lg font-bold'>Email address</p>
+								<p className='ml-1 capitalize'>{info?.email}</p>
+							</div>
+							<div className='py-1.5'>
+								<p className='text-lg font-bold'>Contact number</p>
+								<p className='ml-1'>{info?.number}</p>
+							</div>
+							<div className='py-1.5'>
+								<p className='text-lg font-bold'>Showme</p>
+								<p className='ml-1 capitalize'>{info?.showme}</p>
+							</div>
+							<div className='py-1.5'>
+								<p className='text-lg font-bold'>Date of Birth</p>
+								<p className='ml-1'>{info?.dob}</p>
+							</div>
+							<div className='pt-1.5 pb-3'>
+								<p className='text-lg font-bold'>Your intent</p>
+								<p className='ml-1 capitalize'>{info?.intent}</p>
+							</div>
+						</div>
+					</div>
+
+				</div>
+
 				<div className='mx-8 mt-10'>
 					<div className='text-primary text-lg'>Messages</div>
 					<div>
@@ -271,7 +312,7 @@ const Dashboard = () => {
 												src={`http://localhost:8000/public/${item.profile}`}
 												alt={item?.fullname}
 												width={60}
-														height={60}
+												height={60}
 												className={
 													` rounded-full p-[2px]
                                                     ${online.map(
