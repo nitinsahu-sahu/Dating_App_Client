@@ -69,10 +69,10 @@ const Registration = () => {
                             />
                         </div>
                         <div className="w-[50%] pl-1">
-                            <LabelModule title="Confirm password" for="profile" />
+                            <LabelModule title="Confirm password" for="confirmprofile" />
                             <InputModule
                                 type="password"
-                                name="profile"
+                                name="confirmprofile"
                                 value={data.confirm_pwd}
                                 onChange={(e) => setData({ ...data, confirm_pwd: e.target.value })}
                             />
@@ -87,6 +87,8 @@ const Registration = () => {
                                 placeholder="Enter your number"
                                 value={data.number}
                                 onChange={(e) => setData({ ...data, number: e.target.value })}
+                                maxLength="10"
+                                isRequired
                             />
                         </div>
                         <div className="w-[50%] pl-1">

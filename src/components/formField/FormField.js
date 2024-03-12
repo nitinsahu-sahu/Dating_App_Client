@@ -18,6 +18,8 @@ const InputModule = (props) => {
             required={props.isRequired}
             value={props.value}
             onChange={props.onChange}
+            onBlur={props.onBlur}
+            maxLength={props.maxLength}
         />
 
     )

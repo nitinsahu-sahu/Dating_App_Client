@@ -1,7 +1,28 @@
 import axios from "../helper/axios";
 import { authConstants } from "./constants";
 
-
+// ----------------Create User-------------------
+export const editPersonalINfo = (userdata,_id) => {
+  return async (dispatch) => {
+    dispatch({
+      type: authConstants.UPDATE_USER_INFO_REQUEST
+    });
+    await axios.patch(`/update-info/${_id}`, userdata).then(function (response) {
+      console.log(response);
+      const user = response.data.updateData;
+      localStorage.setItem('u_info', JSON.stringify(user));
+      dispatch({
+        type: authConstants.LOGIN_SUCCESS,
+        payload: {
+          user,
+          message: response.data.message
+        }
+      })
+    }).catch(function (error) {
+      console.log('error',error.message);
+    });
+  }
+}
 
 // ----------------Create User-------------------
 export const register = (formData) => {

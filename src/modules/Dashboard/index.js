@@ -5,7 +5,7 @@ import axios from "../../redux/helper/axios";
 import { InputModule } from '../../components/formField/FormField'
 import { FiSend } from "react-icons/fi";
 import { GoPlusCircle } from "react-icons/go";
-import { logout } from '../../redux/action/userAuth.action.js';
+import { editPersonalINfo, logout } from '../../redux/action/userAuth.action.js';
 import { HiDotsVertical } from "react-icons/hi";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -14,6 +14,7 @@ import Picker from '@emoji-mart/react'
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { getAllUsers } from '../../redux/action/allusers.action.js';
 import { RxCross2 } from "react-icons/rx";
+import { FiEdit } from "react-icons/fi";
 const Dashboard = () => {
 	const users = useSelector(state => state.usersList.allusers);
 	const dispatch = useDispatch()
@@ -27,7 +28,15 @@ const Dashboard = () => {
 	const [anchorEl, setAnchorEl] = useState(null);
 	const open = Boolean(anchorEl);
 	const [emojiShow, setEmojiShow] = useState(false)
-	const [sideBarShow, setSideBarShow] = useState(false)
+	const [inputFieldShow, setInputFieldShow] = useState(false)
+	const [editdata, setEditData] = useState({
+		fullname: info.fullname,
+		showme: info.showme,
+		intent: info.intent,
+		dob: info.dob,
+		number: info.number,
+		gender: info.gender
+	})
 	const handleClick = (event) => {
 		setAnchorEl(event.currentTarget);
 	};
@@ -37,15 +46,12 @@ const Dashboard = () => {
 	useEffect(() => {
 		dispatch(getAllUsers())
 	}, [])
-	// useEffect(() => {
-	// 	dispatch(logout())
-	// }, [])
 	useEffect(() => {
 		setSocket(io('http://localhost:8080'))
 	}, [])
 
 	useEffect(() => {
-		socket?.emit('addUser', info._id);
+		socket?.emit('addUser', info?._id);
 		socket?.on('getUsers', users => {
 			console.log('active>>>', users)
 			setOnline(users);
@@ -79,8 +85,6 @@ const Dashboard = () => {
 		fetchConversations()
 	}, [])
 
-
-
 	const fetchMessages = async (conversationId, receiver) => {
 		await axios.get(`/message/${conversationId}?senderId=${info?._id}&&receiverId=${receiver?.receiverId}`).then(function (response) {
 			setMessages({ messages: response?.data, receiver, conversationId })
@@ -113,8 +117,14 @@ const Dashboard = () => {
 
 	const handleEmojiSelect = (emoji) => {
 		setMessage(prev => prev + emoji.native)
-		setEmojiShow(false);
+		setEmojiShow(!emojiShow);
 	};
+
+	const handleSubmit = async (e) => {
+		dispatch(editPersonalINfo(editdata, info?._id));
+		setInputFieldShow(!inputFieldShow)
+	}
+
 	return (
 		<div className='w-screen flex'>
 			<div className='w-[25%] h-screen bg-secondary'>
@@ -162,9 +172,8 @@ const Dashboard = () => {
 								horizontal: 'center',
 							}}
 						>
-							<MenuItem onClick={handleClose}>Profile</MenuItem>
-							<MenuItem onClick={handleClose}>My account</MenuItem>
-							<MenuItem onClick={() => dispatch(logout())}>Logout</MenuItem>
+							<MenuItem onClick={handleClose}>Settings</MenuItem>
+							<MenuItem onClick={() => dispatch(logout())}>Log out</MenuItem>
 						</Menu>
 					</div>
 				</div>
@@ -187,32 +196,127 @@ const Dashboard = () => {
 								height={80}
 								className='border border-primary p-[2px] rounded-full min-w-10'
 							/>
+							<div className='relative right-4 '>
+								<FiEdit size={20} className='mt-14 cursor-pointer text-denger' />
+							</div>
 						</div>
-						<div className='mt-6 bg-pink pl-2'>
-							<div className='pb-1.5 pt-3'>
-								<p className='text-lg font-bold'>Fullname</p>
-								<p className='ml-1 capitalize'>{info?.fullname}</p>
+						<div className='mt-4 bg-pink px-3'>
+							<div className='flex pb-1 pt-3 justify-between'>
+								<div className='w-[75%]'>
+									<p className='text-lg font-bold'>Full name</p>
+									<form onBlur={(e) => handleSubmit(e)}>
+										{
+											inputFieldShow === 'fullname' ? <InputModule type="text" name="fullname" value={editdata.fullname} placeholder="Fullname" onChange={(e) => setEditData({ ...editdata, fullname: e.target.value })} /> : <p className='ml-1'>{info?.fullname}</p>
+										}
+									</form>
+								</div>
+								<div className='self-center'>
+									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('fullname')} />
+								</div>
 							</div>
-							<div className='py-1.5'>
-								<p className='text-lg font-bold'>Email address</p>
-								<p className='ml-1 capitalize'>{info?.email}</p>
+							<div className='flex pb-1 pt-3 justify-between'>
+								<div className='w-[75%]'>
+									<p className='text-lg font-bold'>Email</p>
+									<p className='ml-1'>{info?.email}</p>
+								</div>
 							</div>
-							<div className='py-1.5'>
-								<p className='text-lg font-bold'>Contact number</p>
-								<p className='ml-1'>{info?.number}</p>
+							<div className='flex pb-1 pt-3 justify-between'>
+								<div className='w-[75%]'>
+									<p className='text-lg font-bold'>Gender</p>
+									{
+										inputFieldShow === 'gender' ?
+										<form onBlur={(e) => handleSubmit(e)}>
+										<select id="gender" value={editdata.gender} onChange={(e) => setEditData({ ...editdata, gender: e.target.value })} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+											<option selected>Choose a gender</option>
+											<option value="men">Men</option>
+											<option value="women">Women</option>
+										</select>
+									</form> : <p className='ml-1'>{info?.gender}</p>
+									}
+								</div>
+								<div className='self-center'>
+									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('gender')} />
+								</div>
 							</div>
-							<div className='py-1.5'>
-								<p className='text-lg font-bold'>Showme</p>
-								<p className='ml-1 capitalize'>{info?.showme}</p>
+							<div className='flex pb-1 pt-3 justify-between'>
+								<div className='w-[75%]'>
+									<p className='text-lg font-bold'>Contact number</p>
+									{
+										inputFieldShow === 'number' ?
+											<form onBlur={(e) => handleSubmit(e)}>
+												<InputModule
+													type="number"
+													name="number"
+													value={editdata.number}
+													placeholder="Number"
+													onChange={(e) => setEditData({ ...editdata, number: e.target.value })}
+													maxLength={10}
+													isRequired
+												/>
+											</form> : <p className='ml-1'>{info?.number}</p>
+									}
+								</div>
+								<div className='self-center'>
+									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('number')} />
+								</div>
 							</div>
-							<div className='py-1.5'>
-								<p className='text-lg font-bold'>Date of Birth</p>
-								<p className='ml-1'>{info?.dob}</p>
+							<div className='flex pb-1 pt-3 justify-between'>
+								<div className='w-[75%]'>
+									<p className='text-lg font-bold'>Showme</p>
+									{
+										inputFieldShow === 'showme' ?
+											<form onBlur={(e) => handleSubmit(e)}>
+												<select id="showme" value={editdata.showme} onChange={(e) => setEditData({ ...editdata, showme: e.target.value })} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+													<option selected>Choose a showme</option>
+													<option value="men">Men</option>
+													<option value="women">Women</option>
+													<option value="both">Both</option>
+												</select>
+											</form> : <p className='ml-1'>{info?.showme}</p>
+									}
+								</div>
+								<div className='self-center'>
+									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow("showme")} />
+								</div>
 							</div>
-							<div className='pt-1.5 pb-3'>
-								<p className='text-lg font-bold'>Your intent</p>
-								<p className='ml-1 capitalize'>{info?.intent}</p>
+							<div className='flex pb-1 pt-3 justify-between'>
+								<div className='w-[75%]'>
+									<p className='text-lg font-bold'>Date of birth</p>
+									{
+										inputFieldShow === 'dob' ?
+											<form onBlur={(e) => handleSubmit(e)}>
+												<InputModule type="date" name="dob" value={editdata.dob} placeholder="Date of birth" onChange={(e) => setEditData({ ...editdata, dob: e.target.value })} />
+											</form> : <p className='ml-1'>{info?.dob}</p>
+									}
+								</div>
+								<div className='self-center'>
+									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('dob')} />
+								</div>
 							</div>
+							<div className='flex pb-1 pt-3 justify-between'>
+								<div className='w-[75%]'>
+									<p className='text-lg font-bold'>Relationship intent</p>
+									{
+										inputFieldShow === 'intent' ?
+											<form onBlur={(e) => handleSubmit(e)}>
+												<select id="intent" value={editdata.intent} onChange={(e) => setEditData({ ...editdata, intent: e.target.value })} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+													<option selected>Choose a intent</option>
+													<option value="long-term partner">Long-term partner</option>
+													<option value="long-term, open to short">Long-term, open to short</option>
+													<option value="short-term, open to long">Short-term, open to long</option>
+													<option value="new friends">New friends</option>
+												</select>
+											</form> : <p className='ml-1'>{info?.intent}</p>
+									}
+								</div>
+								<div className='self-center'>
+									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('intent')} />
+								</div>
+							</div>
+							{/* 
+							
+							<Editbox f_title='Date of Birth' f_value={info?.dob} _id={info?._id} name='dob' />
+							<Editbox f_title='Relationship intent' f_value={info?.intent} _id={info?._id} name='intent' /> */}
 						</div>
 					</div>
 
@@ -288,6 +392,7 @@ const Dashboard = () => {
 							{
 								emojiShow ? <div className='picker'><Picker data={data} onEmojiSelect={handleEmojiSelect} /></div> : null
 							}
+
 						</div>
 						<InputModule placeholder='Type a message...' value={message} onChange={(e) => setMessage(e.target.value)} className='w-[75%]' class='p-4 border-0 shadow-md rounded-full bg-light focus:ring-0 focus:border-0 outline-none' />
 						<div className={`ml-4 p-2 cursor-pointer bg-light rounded-full ${!message && 'pointer-events-none'}`} onClick={() => sendMessage()}>
