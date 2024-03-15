@@ -5,7 +5,7 @@ import axios from "../../redux/helper/axios";
 import { InputModule } from '../../components/formField/FormField'
 import { FiSend } from "react-icons/fi";
 import { GoPlusCircle } from "react-icons/go";
-import { editPersonalINfo, logout } from '../../redux/action/userAuth.action.js';
+import { editPersonalINfo, logout, updateProfilePic } from '../../redux/action/userAuth.action.js';
 import { HiDotsVertical } from "react-icons/hi";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -15,6 +15,7 @@ import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { getAllUsers } from '../../redux/action/allusers.action.js';
 import { RxCross2 } from "react-icons/rx";
 import { FiEdit } from "react-icons/fi";
+import ImageComponent from '../../components/common-component/index.js';
 const Dashboard = () => {
 	const users = useSelector(state => state.usersList.allusers);
 	const dispatch = useDispatch()
@@ -24,6 +25,7 @@ const Dashboard = () => {
 	const [message, setMessage] = useState('')
 	const [socket, setSocket] = useState(null)
 	const [online, setOnline] = useState([])
+	console.log('online>', online);
 	const messageRef = useRef(null)
 	const [anchorEl, setAnchorEl] = useState(null);
 	const open = Boolean(anchorEl);
@@ -37,6 +39,8 @@ const Dashboard = () => {
 		number: info.number,
 		gender: info.gender
 	})
+	console.log(conversations);
+	console.log(messages);
 	const handleClick = (event) => {
 		setAnchorEl(event.currentTarget);
 	};
@@ -124,25 +128,37 @@ const Dashboard = () => {
 		dispatch(editPersonalINfo(editdata, info?._id));
 		setInputFieldShow(!inputFieldShow)
 	}
+	const inputFile = useRef(null);
 
+	const openFile = () => {
+		inputFile.current.click();
+	};
+	const handleFileChange = event => {
+		const fileObj = event.target.files && event.target.files[0];
+		if (!fileObj) {
+			return;
+		}
+		const formData = new FormData();
+		formData.append("profile", fileObj);
+		formData.append("_id", info?._id);
+		dispatch(updateProfilePic(formData));
+	};
 	return (
 		<div className='w-screen flex'>
 			<div className='w-[25%] h-screen bg-secondary'>
-				<div className='items-center my-5 mx-5'>
+				<div className='items-center my-2 mx-2'>
 					<div className='flex justify-between'>
 						<div className='flex'>
-
 							<div className='cursor-pointer grid content-center' data-drawer-target="drawer-example" data-drawer-show="drawer-example" aria-controls="drawer-example" >
-								<img
-									src={`http://localhost:8000/public/${info?.profile}`}
-									width={60}
-									height={60}
-									className='border border-primary p-[2px] rounded-full min-w-10'
+								<ImageComponent
+									srcLink={info?.profile}
+									externalClass="sm:h-7 sm:w-7 md:h-12 md:w-12 border border-primary"
+									alt={info?.fullname}
 								/>
 							</div>
-							<div className='ml-4 mt-1'>
-								<h3 className='sm:text-sm md:text-base lg:text-lg'>{info?.fullname}</h3>
-								<p className='sm:text-xs md:text-sm lg:text-base font-light'>{info?.intent}</p>
+							<div className='ml-4 '>
+								<h3 className='sm:text-sm md:text-base lg:text-base font-semibold'>{info?.fullname}</h3>
+								<p className='sm:text-xs md:text-sm lg:text-sm font-light'>{info?.intent}</p>
 							</div>
 						</div>
 						<div
@@ -153,7 +169,7 @@ const Dashboard = () => {
 							aria-expanded={open ? 'true' : undefined}
 							onClick={handleClick}
 						>
-							<HiDotsVertical size={30} />
+							<HiDotsVertical size={25} />
 						</div>
 						<Menu
 							id="basic-menu"
@@ -190,20 +206,25 @@ const Dashboard = () => {
 					</div>
 					<div className='p-3'>
 						<div className='flex justify-center ' style={{ marginTop: -47 }}>
-							<img
-								src={`http://localhost:8000/public/${info?.profile}`}
-								width={80}
-								height={80}
-								className='border border-primary p-[2px] rounded-full min-w-10'
+							<ImageComponent
+								srcLink={info?.profile}
+								externalClass="ddpro-profile border border-primary"
+								alt={info?.fullname}
 							/>
 							<div className='relative right-4 '>
-								<FiEdit size={20} className='mt-14 cursor-pointer text-denger' />
+								<input
+									type="file"
+									ref={inputFile}
+									style={{ display: 'none' }}
+									onChange={handleFileChange}
+								/>
+								<FiEdit size={20} className='mt-12 cursor-pointer text-denger' onClick={openFile} />
 							</div>
 						</div>
 						<div className='mt-4 bg-pink px-3'>
 							<div className='flex pb-1 pt-3 justify-between'>
 								<div className='w-[75%]'>
-									<p className='text-lg font-bold'>Full name</p>
+									<p className='text-lg font-bold'>Fullname</p>
 									<form onBlur={(e) => handleSubmit(e)}>
 										{
 											inputFieldShow === 'fullname' ? <InputModule type="text" name="fullname" value={editdata.fullname} placeholder="Fullname" onChange={(e) => setEditData({ ...editdata, fullname: e.target.value })} /> : <p className='ml-1'>{info?.fullname}</p>
@@ -214,31 +235,31 @@ const Dashboard = () => {
 									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('fullname')} />
 								</div>
 							</div>
-							<div className='flex pb-1 pt-3 justify-between'>
+							<div className='flex pb-1 pt-1 justify-between'>
 								<div className='w-[75%]'>
 									<p className='text-lg font-bold'>Email</p>
 									<p className='ml-1'>{info?.email}</p>
 								</div>
 							</div>
-							<div className='flex pb-1 pt-3 justify-between'>
+							<div className='flex pb-1 pt-1 justify-between'>
 								<div className='w-[75%]'>
 									<p className='text-lg font-bold'>Gender</p>
 									{
 										inputFieldShow === 'gender' ?
-										<form onBlur={(e) => handleSubmit(e)}>
-										<select id="gender" value={editdata.gender} onChange={(e) => setEditData({ ...editdata, gender: e.target.value })} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-											<option selected>Choose a gender</option>
-											<option value="men">Men</option>
-											<option value="women">Women</option>
-										</select>
-									</form> : <p className='ml-1'>{info?.gender}</p>
+											<form onBlur={(e) => handleSubmit(e)}>
+												<select id="gender" value={editdata.gender} onChange={(e) => setEditData({ ...editdata, gender: e.target.value })} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+													<option selected>Choose a gender</option>
+													<option value="men">Men</option>
+													<option value="women">Women</option>
+												</select>
+											</form> : <p className='ml-1'>{info?.gender}</p>
 									}
 								</div>
 								<div className='self-center'>
 									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('gender')} />
 								</div>
 							</div>
-							<div className='flex pb-1 pt-3 justify-between'>
+							<div className='flex pb-1 pt-1 justify-between'>
 								<div className='w-[75%]'>
 									<p className='text-lg font-bold'>Contact number</p>
 									{
@@ -260,13 +281,13 @@ const Dashboard = () => {
 									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('number')} />
 								</div>
 							</div>
-							<div className='flex pb-1 pt-3 justify-between'>
+							<div className='flex pb-1 pt-1 justify-between'>
 								<div className='w-[75%]'>
 									<p className='text-lg font-bold'>Showme</p>
 									{
 										inputFieldShow === 'showme' ?
 											<form onBlur={(e) => handleSubmit(e)}>
-												<select id="showme" value={editdata.showme} onChange={(e) => setEditData({ ...editdata, showme: e.target.value })} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+												<select id="showme" value={editdata.showme} onChange={(e) => setEditData({ ...editdata, showme: e.target.value })} className="bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
 													<option selected>Choose a showme</option>
 													<option value="men">Men</option>
 													<option value="women">Women</option>
@@ -279,7 +300,7 @@ const Dashboard = () => {
 									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow("showme")} />
 								</div>
 							</div>
-							<div className='flex pb-1 pt-3 justify-between'>
+							<div className='flex pb-1 pt-1 justify-between'>
 								<div className='w-[75%]'>
 									<p className='text-lg font-bold'>Date of birth</p>
 									{
@@ -293,7 +314,7 @@ const Dashboard = () => {
 									<FiEdit size={20} className='cursor-pointer text-denger' onClick={() => setInputFieldShow('dob')} />
 								</div>
 							</div>
-							<div className='flex pb-1 pt-3 justify-between'>
+							<div className='flex pb-1 pt-1 justify-between'>
 								<div className='w-[75%]'>
 									<p className='text-lg font-bold'>Relationship intent</p>
 									{
@@ -322,21 +343,20 @@ const Dashboard = () => {
 
 				</div>
 
-				<div className='mx-8 mt-10'>
+				<div className='mx-6 mt-5'>
 					<div className='text-primary text-lg'>Messages</div>
 					<div>
 						{
 							conversations.length > 0 ?
 								conversations.map(({ conversationId, user }, index) => {
 									return (
-										<div key={index} className='flex items-center py-8 border-b border-b-gray-300'>
+										<div key={index} className='flex items-center py-5 border-b border-b-gray-300'>
 											<div className='cursor-pointer flex items-center' onClick={() => fetchMessages(conversationId, user)}>
 												<div className='min-w-30'>
-													<img
-														src={`http://localhost:8000/public/${user?.profile}`}
-														width={60}
-														height={60}
-														className="p-[2px] rounded-full border border-primary "
+													<ImageComponent
+														srcLink={user?.profile}
+														externalClass="mp-profile border border-primary"
+														alt={user?.fullname}
 													/>
 												</div>
 												<div className='ml-6'>
@@ -356,16 +376,19 @@ const Dashboard = () => {
 					messages?.receiver?.fullname &&
 					<div className='w-[75%] bg-secondary h-[80px] my-14 rounded-full flex items-center px-14 py-2'>
 						<div className='cursor-pointer'>
-							<img
-								src={`http://localhost:8000/public/${messages?.receiver?.profile}`}
-								width={60}
-								height={60}
-								className="rounded-full"
+							<ImageComponent
+								srcLink={messages?.receiver?.profile}
+								externalClass="mp-profile border border-primary"
+								alt={messages?.receiver?.fullname}
 							/>
 						</div>
 						<div className='ml-6 mr-auto'>
 							<h3 className='sm:text-sm md:text-base lg:text-lg'>{messages?.receiver?.fullname}</h3>
-							<p className='sm:text-xs md:text-sm lg:text-base font-light text-gray-600'>Online/Offline</p>
+							{
+								online.map(
+									(onlineusers) => onlineusers.userId === messages.receiver.receiverId._id ? <p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>Online</p> : <p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>Offline</p>
+								)
+							}
 						</div>
 					</div>
 				}
@@ -373,10 +396,10 @@ const Dashboard = () => {
 					<div className='p-14'>
 						{
 							messages?.messages?.length > 0 ?
-								messages.messages.map(({ message, user }) => {
+								messages.messages.map(({ message, user }, index) => {
 									return (
 										<>
-											<div className={`max-w-[40%] rounded-b-xl p-4 mb-6 ${user?._id === user?.user?._id ? 'bg-primary text-white rounded-tl-xl mr-auto' : 'bg-secondary rounded-tr-xl ml-auto'} `}>{message}</div>
+											<div key={index} className={`max-w-[40%] rounded-b-xl p-4 mb-6 ${user?._id === user?.user?._id ? 'bg-primary text-white rounded-tl-xl mr-auto' : 'bg-secondary rounded-tr-xl ml-auto'} `}>{message}</div>
 											<div ref={messageRef}></div>
 										</>
 									)
@@ -414,24 +437,18 @@ const Dashboard = () => {
 									<div className='cursor-pointer flex items-center' onClick={() => fetchMessages('new', item)}>
 										<div>
 											<img
-												src={`http://localhost:8000/public/${item.profile}`}
+												src={`${process.env.REACT_APP_SERVER_IMG_URL}/${item.profile}`}
 												alt={item?.fullname}
-												width={60}
-												height={60}
 												className={
-													` rounded-full p-[2px]
-                                                    ${online.map(
-														(onlineusers) =>
-															onlineusers.userId === item._id ? `border border-green` : `border border-denger`
-													)
-													}`
-
+													`p-[2px] rounded-full min-w-10 mp-profile ${online.map(
+														(onlineusers) => onlineusers.userId === item._id ? `border border-green` : `border border-denger`
+													)}`
 												}
 											/>
 										</div>
 										<div className='ml-6'>
 											<h3 className='sm:text-sm md:text-base lg:text-lg font-semibold'>{item?.fullname}</h3>
-											<p className='sm:text-xs md:text-sm lg:text-base font-light text-gray-600'>{item?.email}</p>
+											<p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>{item?.email}</p>
 										</div>
 									</div>
 								</div>

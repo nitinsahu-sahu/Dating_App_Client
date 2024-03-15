@@ -32,6 +32,16 @@ code {
   top:65px
 }
 
+.ddpro-profile{
+  height: 70px;
+  width: 70px;
+}
+
+.mp-profile{
+  height: 50px;
+  width: 50px;
+}
+
 .bg-peach{
   height: 7rem;
 }

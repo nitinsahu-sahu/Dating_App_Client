@@ -1,6 +1,28 @@
 import axios from "../helper/axios";
 import { authConstants } from "./constants";
 
+
+// ----------------Update profile fpi-------------------
+export const updateProfilePic = (formData) => {
+  return async (dispatch) => {
+    dispatch({
+      type: authConstants.UPDATE_USER_PIC_REQUEST
+    });
+    await axios.patch(`/update-profilepic`, formData).then(function (response) {
+      const user = response.data.updateData;
+      localStorage.setItem('u_info', JSON.stringify(user));
+      dispatch({
+        type: authConstants.LOGIN_SUCCESS,
+        payload: {
+          user,
+          message: response.data.message
+        }
+      })
+    }).catch(function (error) {
+      console.log('error',error.message);
+    });
+  }
+}
 // ----------------Create User-------------------
 export const editPersonalINfo = (userdata,_id) => {
   return async (dispatch) => {
