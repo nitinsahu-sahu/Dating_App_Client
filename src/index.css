@@ -45,3 +45,25 @@ code {
 .bg-peach{
   height: 7rem;
 }
+
+._1b6oD {
+  bottom: 98px;
+  padding: 12px;
+  right: 26%;
+  transform-origin: left bottom;
+  transform: scale(1);
+  opacity: 1;
+}
+.gopluscircle-icon{
+  transform: rotate(0.5trun);
+}
+
+._2sDI2 {
+  position: absolute;
+  z-index: 10000;
+  max-width: 340px;
+  overflow: visible;
+  background-color: aliceblue;
+  border-radius: 10px;
+
+}

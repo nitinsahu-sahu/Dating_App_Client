@@ -46,26 +46,30 @@ const Signin = () => {
                 <form className="flex flex-col items-center w-full" onSubmit={handleSubmit}>
                     <div className="mb-4 w-[75%]">
                         {
-                            loginWith === 'email' ? <><LabelModule title="Email address" for="email" />
+                            loginWith === 'email' ? <><LabelModule title="Email address" for="email" class="block text-gray-800 pb-0.2"/>
                                 <InputModule
                                     type="email"
                                     name="loginId"
+                                    id="email"
                                     placeholder="Enter your email"
                                     value={values.loginId}
                                     onChange={handleChange}
                                     onBlur={handleBlur}
+                                    class ="bg-gray-50 border text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full"
 
                                 />
                                 {errors.loginId && <p className='text-xs text-red-500'>{errors.loginId}</p>}
                             </> : <>
-                                <LabelModule title="Mobile number" for="number" />
+                                <LabelModule title="Mobile number" for="number" class="block text-gray-800 pb-0.2"/>
                                 <InputModule
                                     type="number"
                                     name="loginId"
+                                    id="number"
                                     placeholder="Enter your number"
                                     value={values.loginId}
                                     onChange={handleChange}
                                     onBlur={handleBlur}
+                                    class ="bg-gray-50 border text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full"
                                 />
                                 {errors.number && <p className='text-xs text-red-500'>{errors.number}</p>}
                             </>
@@ -74,14 +78,16 @@ const Signin = () => {
 
                     </div>
                     <div className="mb-4 w-[75%]">
-                        <LabelModule title="Password" for="password" />
+                        <LabelModule title="Password" for="password" class="block text-gray-800 pb-0.2"/>
                         <InputModule
                             type="password"
                             name="password"
+                            id="password"
                             placeholder="Enter your password"
                             value={values.password}
                             onChange={handleChange}
                             onBlur={handleBlur}
+                            class ="bg-gray-50 border text-gray-900 text-sm rounded-lg  focus:border-blue-500 block w-full"
                         />
                         {errors.password && <p className='text-xs text-red-500'>{errors.password}</p>}
                     </div>

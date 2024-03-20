@@ -2,7 +2,7 @@ import React from 'react'
 
 const TextAreaComponents = (props) => {
     return (
-        <textarea id={props.id} className={props.cn} type={props.typ} placeholder={props.plh} name={props.nm} rows={props.rw} />
+        <textarea id={props.id} className={props.cn} type={props.typ} placeholder={props.plh} name={props.name} rows={props.rw} />
     )
 }
 
@@ -10,9 +10,10 @@ const InputModule = (props) => {
     return (
         <input
             type={props.type}
-            id={props.name}
+            id={props.id}
+            name={props.name}
             className={
-                `bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ${props.class}`
+                `focus:ring-blue-500 border-gray-300 ${props.class}`
             }
             placeholder={props.placeholder}
             required={props.isRequired}
@@ -20,20 +21,33 @@ const InputModule = (props) => {
             onChange={props.onChange}
             onBlur={props.onBlur}
             maxLength={props.maxLength}
+            checked={props.checked}
         />
 
     )
 }
-
 const LabelModule = (props) => {
     return (
-        <label className="block text-sm font-medium text-gray-800 pb-0.2" for={props.for}>{props.title}</label>
+        <label className={`text-sm font-medium ${props.class}`} for={props.for}>{props.title}</label>
     )
 }
+
+
+const SelectModule = ({ options, value, onChange, id,subTitile }) => {
+    return (
+        <select id={id} value={value} onChange={onChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option selected>Choose a {subTitile}</option>
+            {options.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+        </select>
+    )
+}
+
 const ButtonModule = (props) => {
     return (
         <button style={{ backgroundColor: "#ff8c00" }} type={props.typ} className={`text-white bg-primary hover:bg-primary focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1.5 text-center ${props.cn}`} id={props.id} onClick={props.onClick}>{props.btnname}</button>
     )
 }
 
-export { TextAreaComponents, ButtonModule, InputModule, LabelModule }
+export { TextAreaComponents, ButtonModule, InputModule, LabelModule, SelectModule }

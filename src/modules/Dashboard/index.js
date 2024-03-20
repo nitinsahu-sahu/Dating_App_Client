@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 import { useDispatch, useSelector } from 'react-redux'
 import axios from "../../redux/helper/axios";
@@ -16,6 +16,10 @@ import { getAllUsers } from '../../redux/action/allusers.action.js';
 import { RxCross2 } from "react-icons/rx";
 import { FiEdit } from "react-icons/fi";
 import ImageComponent from '../../components/common-component/index.js';
+import { IoDocumentTextOutline } from "react-icons/io5";
+import { FaPhotoFilm } from "react-icons/fa6";
+import { FaCameraRetro } from "react-icons/fa";
+import Webcam from "react-webcam";
 const Dashboard = () => {
 	const users = useSelector(state => state.usersList.allusers);
 	const dispatch = useDispatch()
@@ -25,12 +29,16 @@ const Dashboard = () => {
 	const [message, setMessage] = useState('')
 	const [socket, setSocket] = useState(null)
 	const [online, setOnline] = useState([])
-	console.log('online>', online);
 	const messageRef = useRef(null)
 	const [anchorEl, setAnchorEl] = useState(null);
 	const open = Boolean(anchorEl);
 	const [emojiShow, setEmojiShow] = useState(false)
+	const [plusMenuShow, setPlusMenuShow] = useState(false)
 	const [inputFieldShow, setInputFieldShow] = useState(false)
+	const [cameraShow, setCameraShow] = useState(false)
+	const webcamRef = useRef(null)
+	const [url, setUrl] = useState(null)
+	console.log('picurl', url);
 	const [editdata, setEditData] = useState({
 		fullname: info.fullname,
 		showme: info.showme,
@@ -39,8 +47,6 @@ const Dashboard = () => {
 		number: info.number,
 		gender: info.gender
 	})
-	console.log(conversations);
-	console.log(messages);
 	const handleClick = (event) => {
 		setAnchorEl(event.currentTarget);
 	};
@@ -143,6 +149,26 @@ const Dashboard = () => {
 		formData.append("_id", info?._id);
 		dispatch(updateProfilePic(formData));
 	};
+	const videoConstraints = {
+		width: 1280,
+		height: 820,
+		facingMode: "user"
+	};
+	const capture = useCallback(
+		() => {
+			const imageSrc = webcamRef.current.getScreenshot();
+			setCameraShow(!cameraShow);
+			setUrl(imageSrc);
+		},
+		[webcamRef]
+	);
+
+	const openCameraWebCam = () => {
+		setCameraShow(!cameraShow)
+		setPlusMenuShow(!plusMenuShow)
+	};
+
+
 	return (
 		<div className='w-screen flex'>
 			<div className='w-[25%] h-screen bg-secondary'>
@@ -164,7 +190,7 @@ const Dashboard = () => {
 						<div
 							className='grid content-center cursor-pointer'
 							id="basic-button"
-							aria-controls={open ? 'basic-menu' : undefined}
+							aria-controls={open ? 'burgger-menu' : undefined}
 							aria-haspopup="true"
 							aria-expanded={open ? 'true' : undefined}
 							onClick={handleClick}
@@ -172,7 +198,7 @@ const Dashboard = () => {
 							<HiDotsVertical size={25} />
 						</div>
 						<Menu
-							id="basic-menu"
+							id="burgger-menu"
 							anchorEl={anchorEl}
 							open={open}
 							onClose={handleClose}
@@ -217,6 +243,7 @@ const Dashboard = () => {
 									ref={inputFile}
 									style={{ display: 'none' }}
 									onChange={handleFileChange}
+									accept='image/*'
 								/>
 								<FiEdit size={20} className='mt-12 cursor-pointer text-denger' onClick={openFile} />
 							</div>
@@ -342,7 +369,6 @@ const Dashboard = () => {
 					</div>
 
 				</div>
-
 				<div className='mx-6 mt-5'>
 					<div className='text-primary text-lg'>Messages</div>
 					<div>
@@ -392,21 +418,34 @@ const Dashboard = () => {
 						</div>
 					</div>
 				}
-				<div className='h-[75%] w-full overflow-scroll shadow-sm'>
-					<div className='p-14'>
-						{
-							messages?.messages?.length > 0 ?
-								messages.messages.map(({ message, user }, index) => {
-									return (
-										<>
-											<div key={index} className={`max-w-[40%] rounded-b-xl p-4 mb-6 ${user?._id === user?.user?._id ? 'bg-primary text-white rounded-tl-xl mr-auto' : 'bg-secondary rounded-tr-xl ml-auto'} `}>{message}</div>
-											<div ref={messageRef}></div>
-										</>
-									)
-								}) : <div className='text-center text-lg font-semibold mt-24'>No Messages or No Conversation Selected</div>
-						}
+				{
+					cameraShow ? <div>
+						<Webcam
+							audio={false}
+							height={720}
+							ref={webcamRef}
+							screenshotFormat="image/jpeg"
+							width={1280}
+							videoConstraints={videoConstraints}
+						/>
+						<button onClick={capture}>Capture photo</button>
+					</div> : <div className='h-[75%] w-full overflow-scroll shadow-sm'>
+						<div className='p-14'>
+							{
+								messages?.messages?.length > 0 ?
+									messages.messages.map(({ message, user }, index) => {
+										return (
+											<>
+												<div key={index} className={`max-w-[40%] rounded-b-xl p-4 mb-6 ${user?._id === user?.user?._id ? 'bg-primary text-white rounded-tl-xl mr-auto' : 'bg-secondary rounded-tr-xl ml-auto'} `}>{message}</div>
+												<div ref={messageRef}></div>
+											</>
+										)
+									}) : <div className='text-center text-lg font-semibold mt-24'>No Messages or No Conversation Selected</div>
+							}
+						</div>
 					</div>
-				</div>
+				}
+
 				{
 					messages?.receiver?.fullname &&
 					<div className='p-5 w-full flex items-center'>
@@ -417,16 +456,49 @@ const Dashboard = () => {
 							}
 
 						</div>
-						<InputModule placeholder='Type a message...' value={message} onChange={(e) => setMessage(e.target.value)} className='w-[75%]' class='p-4 border-0 shadow-md rounded-full bg-light focus:ring-0 focus:border-0 outline-none' />
+						<InputModule
+							placeholder='Type a message...'
+							value={message} onChange={(e) => setMessage(e.target.value)}
+							class='w-[75%] p-4 border-0 shadow-md rounded-full bg-light focus:ring-0 focus:border-0 outline-none'
+						/>
 						<div className={`ml-4 p-2 cursor-pointer bg-light rounded-full ${!message && 'pointer-events-none'}`} onClick={() => sendMessage()}>
 							<FiSend size={24} className="icon icon-tabler icon-tabler-send" />
 						</div>
-						<div className={`ml-4 p-2 cursor-pointer bg-light rounded-full ${!message && 'pointer-events-none'}`}>
-							<GoPlusCircle size={24} className="icon icon-tabler icon-tabler-send" />
+						<div className={`ml-4 p-2  bg-light rounded-full`} >
+							<div onClick={() => setPlusMenuShow(!plusMenuShow)} >
+								<GoPlusCircle
+									size={24}
+									className="gopluscircle-icon icon icon-tabler cursor-pointer icon-tabler-send"
+								/>
+							</div>
+							<span>
+								{
+									plusMenuShow ? <div tabIndex='-1' className='_2sDI2 _1b6oD'>
+										<div className='m-2 flex border-2 rounded-md' onClick={() => console.log("document icon")} style={{ color: "#58D68D" }}>
+											<IoDocumentTextOutline size={28} className="mr-2 icon icon-tabler icon-tabler-send" />
+											<h2 className='font-semibold'>Document</h2>
+											<input type='file' accept='*' className='hidden'/>
+										</div>
+										<div className='m-2 flex border-2 rounded-md' onClick={() => console.log("photo asnd video")} style={{ color: "#5499C7 " }} >
+											<FaPhotoFilm size={28} className="mr-2 icon icon-tabler icon-tabler-send" />
+											<h2 className='font-semibold'>Photo & Video</h2>
+											<input type='file' accept='image/*,video/mp4,video/3gpp,video/quicktime' className='hidden'/>
+										</div>
+										<div className='m-2 flex border-2 rounded-md' onClick={() => openCameraWebCam()} style={{ color: "#D98880 " }} >
+											<FaCameraRetro size={28} className=" mr-2 icon icon-tabler icon-tabler-send" />
+											<h2 className='font-semibold'>Camera</h2>
+										</div>
+									</div> : null
+								}
+							</span>
 						</div>
+
 					</div>
+
 				}
 			</div>
+
+
 			<div className='w-[25%] h-screen bg-light px-8 py-16 overflow-scroll'>
 				<div>
 					<div className='text-primary text-lg '>People</div>

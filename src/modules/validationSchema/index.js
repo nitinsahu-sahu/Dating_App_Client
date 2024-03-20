@@ -7,11 +7,14 @@ const signinSchema = Yup.object({
 })
 
 const signupSchema = Yup.object({
-    firstname:Yup.string().email().required("Please enter your email"),
-    loginId:Yup.string().email().required("Please enter your email"),
-    
+    fullname:Yup.string().min(2).required("Fullame is required"),
+    email:Yup.string().email().required("Please enter your email"),
+    dob:Yup.string().required("Date of birth is required"),
     password: Yup.string().min(6).required("Please enter your password"),
-    confirm_pwd:Yup.string().email().required().oneOf([Yup.ref("password"),null],"password must match"),
+    confirmpassword:Yup.string().required().oneOf([Yup.ref("password"),null],"password must match"),
+    intent:Yup.string().required("Please select intent type."),
+    showme:Yup.string().required("Please select showme type."),
+    selectgender:Yup.string().required("Required")
 })
 export {signinSchema,signupSchema}
 // export default function validation(data) {
