@@ -22,6 +22,7 @@ import { FaCameraRetro } from "react-icons/fa";
 import Webcam from "react-webcam";
 const Dashboard = () => {
 	const users = useSelector(state => state.usersList.allusers);
+	const isLoginUser = useSelector(state => state.userAuth.user);
 	const dispatch = useDispatch()
 	const info = JSON.parse(localStorage.getItem("u_info"))
 	const [conversations, setConversations] = useState([])
@@ -29,16 +30,28 @@ const Dashboard = () => {
 	const [message, setMessage] = useState('')
 	const [socket, setSocket] = useState(null)
 	const [online, setOnline] = useState([])
-	const messageRef = useRef(null)
+	console.log('online>>', online);
+
+	const [url, setUrl] = useState()
+	const [pdfurl, setpdfUrl] = useState()
+	const [imagevideourl, setimagevideoUrl] = useState()
+	const [uploadPdfFile, setUploadPdfFile] = useState('')
+	console.log('msg', messages);
+	console.log('picurl', url);
+	console.log('imgvideourl', imagevideourl);
 	const [anchorEl, setAnchorEl] = useState(null);
-	const open = Boolean(anchorEl);
 	const [emojiShow, setEmojiShow] = useState(false)
 	const [plusMenuShow, setPlusMenuShow] = useState(false)
 	const [inputFieldShow, setInputFieldShow] = useState(false)
 	const [cameraShow, setCameraShow] = useState(false)
 	const webcamRef = useRef(null)
-	const [url, setUrl] = useState(null)
-	console.log('picurl', url);
+	const inputFile = useRef(null);
+	const docsInputFile = useRef(null);
+	const messageRef = useRef(null)
+	const PicandVideoInputFile = useRef(null)
+	const open = Boolean(anchorEl);
+
+
 	const [editdata, setEditData] = useState({
 		fullname: info.fullname,
 		showme: info.showme,
@@ -61,6 +74,68 @@ const Dashboard = () => {
 	}, [])
 
 	useEffect(() => {
+		messageRef?.current?.scrollIntoView({ behavior: 'smooth' })
+	}, [messages?.messages])
+
+	useEffect(() => {
+		const fetchConversations = async () => {
+			await axios.get(`/conversations/${info?._id}`).then(function (response) {
+				setConversations(response?.data)
+			}).catch((error) => {
+				console.log("Conversation not found");
+			})
+		}
+		fetchConversations()
+	}, [messages])
+
+	const fetchMessages = async (conversationId, receiver) => {
+		await axios.get(`/message/${conversationId}?senderId=${info?._id}&&receiverId=${receiver?.receiverId}`).then(function (response) {
+			setMessages({ messages: response?.data, receiver, conversationId })
+
+		}).catch((error) => {
+			console.log("Conversation not found");
+		})
+	}
+
+	const handleEmojiSelect = (emoji) => {
+		setMessage(prev => prev + emoji.native)
+		setEmojiShow(!emojiShow);
+	};
+
+	const handleSubmit = async (e) => {
+		dispatch(editPersonalINfo(editdata, info?._id));
+		setInputFieldShow(!inputFieldShow)
+	}
+
+	const openFile = () => {
+		inputFile.current.click();
+	};
+	const handleFileChange = event => {
+		const fileObj = event.target.files && event.target.files[0];
+		if (!fileObj) {
+			return;
+		}
+		const formData = new FormData();
+		formData.append("profile", fileObj);
+		formData.append("_id", info?._id);
+		dispatch(updateProfilePic(formData));
+	};
+
+	const openDocsFile = () => {
+		docsInputFile.current.click();
+	};
+	const handleDocsFileChange = event => {
+		setpdfUrl(event.target.files[0]);
+
+	};
+	const openPicandVideoFile = () => {
+		PicandVideoInputFile.current.click();
+	};
+	const handlePicandVideoFileChange = event => {
+		setimagevideoUrl(event.target.files);
+	};
+
+	useEffect(() => {
 		socket?.emit('addUser', info?._id);
 		socket?.on('getUsers', users => {
 			console.log('active>>>', users)
@@ -80,29 +155,6 @@ const Dashboard = () => {
 		})
 	}, [socket])
 
-	useEffect(() => {
-		messageRef?.current?.scrollIntoView({ behavior: 'smooth' })
-	}, [messages?.messages])
-
-	useEffect(() => {
-		const fetchConversations = async () => {
-			await axios.get(`/conversations/${info?._id}`).then(function (response) {
-				setConversations(response?.data)
-			}).catch((error) => {
-				console.log("Conversation not found");
-			})
-		}
-		fetchConversations()
-	}, [])
-
-	const fetchMessages = async (conversationId, receiver) => {
-		await axios.get(`/message/${conversationId}?senderId=${info?._id}&&receiverId=${receiver?.receiverId}`).then(function (response) {
-			setMessages({ messages: response?.data, receiver, conversationId })
-
-		}).catch((error) => {
-			console.log("Conversation not found");
-		})
-	}
 
 	const sendMessage = async (e) => {
 		setMessage('')
@@ -110,45 +162,59 @@ const Dashboard = () => {
 			conversationId: messages?.conversationId,
 			senderId: info?._id,
 			message,
-			receiverId: messages?.receiver?.receiverId
+			receiverId: messages?.receiver?.receiverId,
+			type: "text"
 		});
 		let msginfo = {
 			conversationId: messages?.conversationId,
 			senderId: info?._id,
 			message,
-			receiverId: messages?.receiver?.receiverId
+			receiverId: messages?.receiver?.receiverId,
+			type: "text"
 		}
-		await axios.post(`/message`, msginfo).then(function (response) {
-			console.log(response);
-		}).catch((error) => {
-			console.log("Conversation not found");
+		await axios.post(`/message`, msginfo).then().catch((error) => {
+			console.log("Server error");
 		})
 	}
 
-	const handleEmojiSelect = (emoji) => {
-		setMessage(prev => prev + emoji.native)
-		setEmojiShow(!emojiShow);
-	};
-
-	const handleSubmit = async (e) => {
-		dispatch(editPersonalINfo(editdata, info?._id));
-		setInputFieldShow(!inputFieldShow)
-	}
-	const inputFile = useRef(null);
-
-	const openFile = () => {
-		inputFile.current.click();
-	};
-	const handleFileChange = event => {
-		const fileObj = event.target.files && event.target.files[0];
-		if (!fileObj) {
-			return;
+	useEffect(() => {
+		const getImage = async () => {
+			if (pdfurl) {
+				let data = new FormData()
+				data.append("name", pdfurl.name)
+				data.append("file", pdfurl)
+				await axios.post(`/file/upload`, data).then(function (response) {
+					let ressplit = response.data.split("/")
+					let orignalFilename = ressplit.pop()
+					socket?.emit('sendMessage', {
+						conversationId: messages?.conversationId,
+						senderId: info?._id,
+						message: orignalFilename,
+						receiverId: messages?.receiver?.receiverId,
+						type: "pdf"
+					});
+					let msginfo = {
+						conversationId: messages?.conversationId,
+						senderId: info?._id,
+						message: orignalFilename,
+						receiverId: messages?.receiver?.receiverId,
+						type: "pdf"
+					}
+					axios.post(`/message`, msginfo).then(function (response) {
+						console.log(response);
+					}).catch((error) => {
+						console.log("Conversation not found");
+					})
+				}).catch((error) => {
+					console.log("Error while calling uploading api", error.message);
+				})
+			}
 		}
-		const formData = new FormData();
-		formData.append("profile", fileObj);
-		formData.append("_id", info?._id);
-		dispatch(updateProfilePic(formData));
-	};
+		getImage()
+		setUploadPdfFile('');
+
+	}, [pdfurl])
+
 	const videoConstraints = {
 		width: 1280,
 		height: 820,
@@ -168,9 +234,10 @@ const Dashboard = () => {
 		setPlusMenuShow(!plusMenuShow)
 	};
 
-
+	const isUserOnline = online.some(onlinedata => onlinedata.userId === isLoginUser._id);
 	return (
 		<div className='w-screen flex'>
+			{/* ------------------------------Messages Section Code/ Left Section------------------------------------------------ */}
 			<div className='w-[25%] h-screen bg-secondary'>
 				<div className='items-center my-2 mx-2'>
 					<div className='flex justify-between'>
@@ -181,6 +248,7 @@ const Dashboard = () => {
 									externalClass="sm:h-7 sm:w-7 md:h-12 md:w-12 border border-primary"
 									alt={info?.fullname}
 								/>
+								<div className={`online border-4 ${isUserOnline ? 'border-success' : 'border-denger'}`}></div>
 							</div>
 							<div className='ml-4 '>
 								<h3 className='sm:text-sm md:text-base lg:text-base font-semibold'>{info?.fullname}</h3>
@@ -367,7 +435,6 @@ const Dashboard = () => {
 							<Editbox f_title='Relationship intent' f_value={info?.intent} _id={info?._id} name='intent' /> */}
 						</div>
 					</div>
-
 				</div>
 				<div className='mx-6 mt-5'>
 					<div className='text-primary text-lg'>Messages</div>
@@ -397,6 +464,7 @@ const Dashboard = () => {
 					</div>
 				</div>
 			</div>
+			{/* ------------------------------People Chat Section Code/ Middle Section------------------------------------------------ */}
 			<div className='w-[50%] h-screen bg-white flex flex-col items-center'>
 				{
 					messages?.receiver?.fullname &&
@@ -410,11 +478,11 @@ const Dashboard = () => {
 						</div>
 						<div className='ml-6 mr-auto'>
 							<h3 className='sm:text-sm md:text-base lg:text-lg'>{messages?.receiver?.fullname}</h3>
-							{
+							{/* {
 								online.map(
-									(onlineusers) => onlineusers.userId === messages.receiver.receiverId._id ? <p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>Online</p> : <p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>Offline</p>
+									(onlineusers) => onlineusers.userId === messages.receiver.receiverId ? <p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>Online</p> : <p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>Offline</p>
 								)
-							}
+							} */}
 						</div>
 					</div>
 				}
@@ -433,14 +501,28 @@ const Dashboard = () => {
 						<div className='p-14'>
 							{
 								messages?.messages?.length > 0 ?
-									messages.messages.map(({ message, user }, index) => {
-										return (
-											<>
-												<div key={index} className={`max-w-[40%] rounded-b-xl p-4 mb-6 ${user?._id === user?.user?._id ? 'bg-primary text-white rounded-tl-xl mr-auto' : 'bg-secondary rounded-tr-xl ml-auto'} `}>{message}</div>
-												<div ref={messageRef}></div>
-											</>
-										)
-									}) : <div className='text-center text-lg font-semibold mt-24'>No Messages or No Conversation Selected</div>
+									messages.messages.map(
+										(
+											{
+												message,
+												user
+											}, index
+										) => {
+											return (
+												<>
+													<div
+														key={index}
+														className={
+															`max-w-[40%] rounded-b-xl p-4 mb-6 ${user?._id === isLoginUser?._id ? 'bg-secondary rounded-tr-xl ml-auto' : 'bg-primary text-white rounded-tl-xl mr-auto'}`
+														}
+													>
+														{message}
+													</div>
+													<div ref={messageRef}></div>
+												</>
+											)
+										}
+									) : <div className='text-center text-lg font-semibold mt-24'>No Messages or No Conversation Selected</div>
 							}
 						</div>
 					</div>
@@ -474,15 +556,15 @@ const Dashboard = () => {
 							<span>
 								{
 									plusMenuShow ? <div tabIndex='-1' className='_2sDI2 _1b6oD'>
-										<div className='m-2 flex border-2 rounded-md' onClick={() => console.log("document icon")} style={{ color: "#58D68D" }}>
+										<div className='m-2 flex border-2 rounded-md' onClick={openDocsFile} style={{ color: "#58D68D" }}>
 											<IoDocumentTextOutline size={28} className="mr-2 icon icon-tabler icon-tabler-send" />
 											<h2 className='font-semibold'>Document</h2>
-											<input type='file' accept='*' className='hidden'/>
+											<input type='file' ref={docsInputFile} onChange={handleDocsFileChange} accept='*' className='hidden' />
 										</div>
-										<div className='m-2 flex border-2 rounded-md' onClick={() => console.log("photo asnd video")} style={{ color: "#5499C7 " }} >
+										<div className='m-2 flex border-2 rounded-md' onClick={openPicandVideoFile} style={{ color: "#5499C7 " }} >
 											<FaPhotoFilm size={28} className="mr-2 icon icon-tabler icon-tabler-send" />
 											<h2 className='font-semibold'>Photo & Video</h2>
-											<input type='file' accept='image/*,video/mp4,video/3gpp,video/quicktime' className='hidden'/>
+											<input type='file' ref={PicandVideoInputFile} onChange={handlePicandVideoFileChange} accept='image/*,video/mp4,video/3gpp,video/quicktime' className='hidden' />
 										</div>
 										<div className='m-2 flex border-2 rounded-md' onClick={() => openCameraWebCam()} style={{ color: "#D98880 " }} >
 											<FaCameraRetro size={28} className=" mr-2 icon icon-tabler icon-tabler-send" />
@@ -498,7 +580,7 @@ const Dashboard = () => {
 				}
 			</div>
 
-
+			{/* ------------------------------People Section Code/ Right Section------------------------------------------------ */}
 			<div className='w-[25%] h-screen bg-light px-8 py-16 overflow-scroll'>
 				<div>
 					<div className='text-primary text-lg '>People</div>
@@ -512,9 +594,7 @@ const Dashboard = () => {
 												src={`${process.env.REACT_APP_SERVER_IMG_URL}/${item.profile}`}
 												alt={item?.fullname}
 												className={
-													`p-[2px] rounded-full min-w-10 mp-profile ${online.map(
-														(onlineusers) => onlineusers.userId === item._id ? `border border-green` : `border border-denger`
-													)}`
+													`p-[2px] rounded-full min-w-10 mp-profile ${isUserOnline?`border border-success`:`border border-denger`}`
 												}
 											/>
 										</div>

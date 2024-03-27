@@ -67,3 +67,12 @@ code {
   border-radius: 10px;
 
 }
+
+.online{
+  height: 10px;
+  width: 10px;
+  border-radius: 10px;
+  position: relative;
+  left: 38px;
+  bottom: 12px;
+}

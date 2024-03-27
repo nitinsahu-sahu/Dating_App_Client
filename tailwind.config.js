@@ -11,7 +11,7 @@ module.exports = {
         'secondary': "#f3f5ff",
         'light': "#f9faff",
         'denger': "red",
-        'succss': "#00FF00",
+        'success': "#00FF00",
         'peach': "#FFECE2",
         'pink': "#FFE6E6",
       },
