@@ -1,4 +1,7 @@
 import React from 'react'
+
+
+
 const ImageComponent = ({ alt, externalClass, srcLink}) => {
     return (
         <img

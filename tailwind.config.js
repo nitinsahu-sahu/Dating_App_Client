@@ -14,6 +14,7 @@ module.exports = {
         'success': "#00FF00",
         'peach': "#FFECE2",
         'pink': "#FFE6E6",
+        'leafgreen': "#1A2421",
       },
     },
   },

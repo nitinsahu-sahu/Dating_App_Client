@@ -20,6 +20,15 @@ import { IoDocumentTextOutline } from "react-icons/io5";
 import { FaPhotoFilm } from "react-icons/fa6";
 import { FaCameraRetro } from "react-icons/fa";
 import Webcam from "react-webcam";
+import { formateDate } from '../../components/common-component/DateFormat.js';
+import { IoMdStopwatch } from "react-icons/io";
+import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
+import { MdFileDownload } from "react-icons/md";
+// serarch fiter idea
+// const filterusers = response.filter(user=>user.fullname.toLowerCase().includes(text.toLowerCase()))
+
+//
+
 const Dashboard = () => {
 	const users = useSelector(state => state.usersList.allusers);
 	const isLoginUser = useSelector(state => state.userAuth.user);
@@ -30,27 +39,24 @@ const Dashboard = () => {
 	const [message, setMessage] = useState('')
 	const [socket, setSocket] = useState(null)
 	const [online, setOnline] = useState([])
-	console.log('online>>', online);
-
-	const [url, setUrl] = useState()
-	const [pdfurl, setpdfUrl] = useState()
-	const [imagevideourl, setimagevideoUrl] = useState()
+	const [url, setUrl] = useState(null)
+	const [pdfurl, setpdfUrl] = useState(null)
+	const [imagevideourl, setimagevideoUrl] = useState(null)
+	const [fileError, setFileError] = useState(null)
 	const [uploadPdfFile, setUploadPdfFile] = useState('')
-	console.log('msg', messages);
-	console.log('picurl', url);
-	console.log('imgvideourl', imagevideourl);
 	const [anchorEl, setAnchorEl] = useState(null);
 	const [emojiShow, setEmojiShow] = useState(false)
 	const [plusMenuShow, setPlusMenuShow] = useState(false)
 	const [inputFieldShow, setInputFieldShow] = useState(false)
 	const [cameraShow, setCameraShow] = useState(false)
+	const [searchPeople, setSearchPeople] = useState('')
+	const [searchConv, setSearchConv] = useState('')
 	const webcamRef = useRef(null)
 	const inputFile = useRef(null);
 	const docsInputFile = useRef(null);
 	const messageRef = useRef(null)
 	const PicandVideoInputFile = useRef(null)
 	const open = Boolean(anchorEl);
-
 
 	const [editdata, setEditData] = useState({
 		fullname: info.fullname,
@@ -91,7 +97,6 @@ const Dashboard = () => {
 	const fetchMessages = async (conversationId, receiver) => {
 		await axios.get(`/message/${conversationId}?senderId=${info?._id}&&receiverId=${receiver?.receiverId}`).then(function (response) {
 			setMessages({ messages: response?.data, receiver, conversationId })
-
 		}).catch((error) => {
 			console.log("Conversation not found");
 		})
@@ -132,13 +137,12 @@ const Dashboard = () => {
 		PicandVideoInputFile.current.click();
 	};
 	const handlePicandVideoFileChange = event => {
-		setimagevideoUrl(event.target.files);
+		setimagevideoUrl(event.target.files[0]);
 	};
 
 	useEffect(() => {
 		socket?.emit('addUser', info?._id);
 		socket?.on('getUsers', users => {
-			console.log('active>>>', users)
 			setOnline(users);
 		})
 		socket?.on('getMessage', data => {
@@ -148,7 +152,10 @@ const Dashboard = () => {
 					...prev.messages,
 					{
 						user: data.user,
-						message: data.message
+						message: data.message,
+						updatedAt: data.updatedAt,
+						type: data.type,
+
 					}
 				]
 			}))
@@ -177,12 +184,14 @@ const Dashboard = () => {
 		})
 	}
 
+	//Pdf upload api calll
 	useEffect(() => {
 		const getImage = async () => {
 			if (pdfurl) {
 				let data = new FormData()
 				data.append("name", pdfurl.name)
 				data.append("file", pdfurl)
+				data.append("contentType", 'pdf')
 				await axios.post(`/file/upload`, data).then(function (response) {
 					let ressplit = response.data.split("/")
 					let orignalFilename = ressplit.pop()
@@ -191,29 +200,104 @@ const Dashboard = () => {
 						senderId: info?._id,
 						message: orignalFilename,
 						receiverId: messages?.receiver?.receiverId,
-						type: "pdf"
+						type: "file"
 					});
 					let msginfo = {
 						conversationId: messages?.conversationId,
 						senderId: info?._id,
 						message: orignalFilename,
 						receiverId: messages?.receiver?.receiverId,
-						type: "pdf"
+						type: "file"
 					}
 					axios.post(`/message`, msginfo).then(function (response) {
-						console.log(response);
+						setUploadPdfFile(null);
+
 					}).catch((error) => {
 						console.log("Conversation not found");
 					})
 				}).catch((error) => {
-					console.log("Error while calling uploading api", error.message);
+					setFileError(error.response.data.message);
 				})
 			}
 		}
 		getImage()
-		setUploadPdfFile('');
 
 	}, [pdfurl])
+
+	// Photo and video upload function
+	useEffect(() => {
+		const getImage = async () => {
+			if (imagevideourl) {
+				let data = new FormData()
+				data.append("name", imagevideourl.name)
+				data.append("file", imagevideourl)
+				data.append("contentType", 'image')
+
+				await axios.post(`/file/upload`, data).then(function (response) {
+					let ressplit = response.data.split("/")
+					let orignalFilename = ressplit.pop()
+					socket?.emit('sendMessage', {
+						conversationId: messages?.conversationId,
+						senderId: info?._id,
+						message: orignalFilename,
+						receiverId: messages?.receiver?.receiverId,
+						type: "file"
+					});
+					let msginfo = {
+						conversationId: messages?.conversationId,
+						senderId: info?._id,
+						message: orignalFilename,
+						receiverId: messages?.receiver?.receiverId,
+						type: "file"
+					}
+					axios.post(`/message`, msginfo).then(function (response) {
+						setimagevideoUrl(null);
+					}).catch((error) => {
+						console.log("Conversation not found");
+					})
+				}).catch((errors) => {
+					setFileError(errors.message);
+				})
+			}
+		}
+		getImage()
+
+
+	}, [imagevideourl])
+
+	//capture image 
+	// useEffect(() => {
+	// 	const getCaptureImage = async () => {
+	// 		if (url) {
+	// 			await axios.post(`/file/uploadImage`, url).then(function (response) {
+	// 				console.log('captureimgupload', response);
+	// 				socket?.emit('sendMessage', {
+	// 					conversationId: messages?.conversationId,
+	// 					senderId: info?._id,
+	// 					message: orignalFilename,
+	// 					receiverId: messages?.receiver?.receiverId,
+	// 					type: "file"
+	// 				});
+	// 				let msginfo = {
+	// 					conversationId: messages?.conversationId,
+	// 					senderId: info?._id,
+	// 					message: orignalFilename,
+	// 					receiverId: messages?.receiver?.receiverId,
+	// 					type: "file"
+	// 				}
+	// 				axios.post(`/message`, msginfo).then(function (response) {
+	// 					console.log(response);
+	// 				}).catch((error) => {
+	// 					console.log("Conversation not found");
+	// 				})
+	// 			}).catch((error) => {
+	// 				console.log("Error while calling uploading api", error.message);
+	// 			})
+	// 		}
+	// 	}
+	// 	getCaptureImage()
+	// 	setUrl('');
+	// }, [url])
 
 	const videoConstraints = {
 		width: 1280,
@@ -233,8 +317,13 @@ const Dashboard = () => {
 		setCameraShow(!cameraShow)
 		setPlusMenuShow(!plusMenuShow)
 	};
-
 	const isUserOnline = online.some(onlinedata => onlinedata.userId === isLoginUser._id);
+	const filteredOnlineArray = users.filter(item1 => online.some(item2 => item2.userId === item1._id));
+	const displayUser = users.filter(item1 => conversations.some(item2 => item2.user.receiverId === item1._id));
+	const searchPeoplesForUsers = users.filter(item => item.fullname.toLowerCase().includes(searchPeople.toLocaleLowerCase()))
+	let filterConv=conversations.filter(item => item?.user?.fullname.toLowerCase().includes(searchConv.toLocaleLowerCase()))
+	
+	// const searchPeoplesForSearchBox = conversations.filter(item => item?.user?.fullname.toLowerCase().includes(searchPeople.toLocaleLowerCase()))
 	return (
 		<div className='w-screen flex'>
 			{/* ------------------------------Messages Section Code/ Left Section------------------------------------------------ */}
@@ -265,6 +354,7 @@ const Dashboard = () => {
 						>
 							<HiDotsVertical size={25} />
 						</div>
+
 						<Menu
 							id="burgger-menu"
 							anchorEl={anchorEl}
@@ -286,6 +376,18 @@ const Dashboard = () => {
 							<MenuItem onClick={() => dispatch(logout())}>Log out</MenuItem>
 						</Menu>
 					</div>
+
+				</div>
+				<hr />
+				<div className='flex justify-center'>
+					<InputModule
+						placeholder='Search users...'
+						onChange={(e) => setSearchConv(e.target.value)}
+						style={{
+							fontSize:'12px'
+						}}
+						class='w-[90%] my-2 p-2 border-0 shadow-md rounded-full bg-light focus:ring-0 focus:border-0 outline-none'
+					/>
 				</div>
 				<hr />
 				<div id="drawer-example" class="fixed top-0 left-0 z-40 h-screen  overflow-y-auto transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800" tabindex="-1" aria-labelledby="drawer-label">
@@ -440,8 +542,8 @@ const Dashboard = () => {
 					<div className='text-primary text-lg'>Messages</div>
 					<div>
 						{
-							conversations.length > 0 ?
-								conversations.map(({ conversationId, user }, index) => {
+							filterConv.length > 0 ?
+								filterConv.map(({ conversationId, user }, index) => {
 									return (
 										<div key={index} className='flex items-center py-5 border-b border-b-gray-300'>
 											<div className='cursor-pointer flex items-center' onClick={() => fetchMessages(conversationId, user)}>
@@ -478,11 +580,9 @@ const Dashboard = () => {
 						</div>
 						<div className='ml-6 mr-auto'>
 							<h3 className='sm:text-sm md:text-base lg:text-lg'>{messages?.receiver?.fullname}</h3>
-							{/* {
-								online.map(
-									(onlineusers) => onlineusers.userId === messages.receiver.receiverId ? <p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>Online</p> : <p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>Offline</p>
-								)
-							} */}
+							{
+								filteredOnlineArray.map((item) => item._id === messages?.receiver?.receiverId ? <p className='text-xs text-leafgreen'>Online</p> : <p className='text-denger text-xs'>Offline</p>)
+							}
 						</div>
 					</div>
 				}
@@ -504,20 +604,29 @@ const Dashboard = () => {
 									messages.messages.map(
 										(
 											{
+												type,
 												message,
-												user
+												user,
+												updatedAt
 											}, index
 										) => {
 											return (
 												<>
-													<div
-														key={index}
-														className={
-															`max-w-[40%] rounded-b-xl p-4 mb-6 ${user?._id === isLoginUser?._id ? 'bg-secondary rounded-tr-xl ml-auto' : 'bg-primary text-white rounded-tl-xl mr-auto'}`
-														}
-													>
-														{message}
-													</div>
+													{
+														user?._id === isLoginUser?._id ? <div
+															key={index}
+															className={`max-w-[40%] rounded-b-xl p-4 mb-6 bg-secondary rounded-tr-xl ml-auto`}
+														>
+															{type === 'file' ? <FileTypeMsg msg={message} updatedAt={updatedAt} /> : <TextMsg msg={message} updatedAt={updatedAt} />}
+														</div>
+															:
+															<div
+																key={index}
+																className="max-w-[40%] rounded-b-xl p-4 mb-6 bg-primary text-white rounded-tl-xl mr-auto"
+															>
+																{message}
+															</div>
+													}
 													<div ref={messageRef}></div>
 												</>
 											)
@@ -581,34 +690,133 @@ const Dashboard = () => {
 			</div>
 
 			{/* ------------------------------People Section Code/ Right Section------------------------------------------------ */}
-			<div className='w-[25%] h-screen bg-light px-8 py-16 overflow-scroll'>
+
+			<div className='w-[25%] h-screen bg-light py-7 overflow-scroll'>
 				<div>
-					<div className='text-primary text-lg '>People</div>
-					{
-						users.length > 0 ?
-							users.map((item, index) =>
-								<div key={index} className='flex items-center py-8 border-b border-b-gray-300 overflow-scroll'>
-									<div className='cursor-pointer flex items-center' onClick={() => fetchMessages('new', item)}>
-										<div>
-											<img
-												src={`${process.env.REACT_APP_SERVER_IMG_URL}/${item.profile}`}
-												alt={item?.fullname}
-												className={
-													`p-[2px] rounded-full min-w-10 mp-profile ${isUserOnline?`border border-success`:`border border-denger`}`
-												}
-											/>
-										</div>
-										<div className='ml-6'>
-											<h3 className='sm:text-sm md:text-base lg:text-lg font-semibold'>{item?.fullname}</h3>
-											<p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>{item?.email}</p>
+					<div className='text-primary text-lg my-2'>People</div>
+					<hr />
+					<div className='flex justify-center'>
+						<InputModule
+							placeholder='Search peoples...'
+							onChange={(e) => setSearchPeople(e.target.value)}
+							style={{
+								fontSize:'12px'
+							}}
+							class='w-[90%] my-2 p-2 border-0 shadow-md rounded-full bg-light focus:ring-0 focus:border-0 outline-none'
+						/>
+					</div>
+					<hr />
+					<div className='mx-6'>
+						{
+							searchPeoplesForUsers?.length > 0 ?
+								searchPeoplesForUsers?.map((item, index) =>
+									<div
+										key={index}
+										className={
+											` flex items-center py-8 border-b border-b-gray-300 overflow-scroll ${displayUser.map((data) => data._id === item._id ? "hidden" : null).join('')}`
+										}
+
+									>
+										<div className='cursor-pointer flex items-center' onClick={() => fetchMessages('new', item)}>
+											<div>
+												<img
+													src={`${process.env.REACT_APP_SERVER_IMG_URL}/${item.profile}`}
+													alt={item?.fullname}
+													className={
+														`p-[2px] rounded-full min-w-10 mp-profile ${filteredOnlineArray ? `border border-success` : `border border-denger`}`
+													}
+												/>
+											</div>
+											<div className='ml-6'>
+												<h3 className='sm:text-sm md:text-base lg:text-lg font-semibold'>{item?.fullname}</h3>
+												<p className='sm:text-xs md:text-sm lg:text-sm font-light text-gray-600'>{item?.email}</p>
+											</div>
 										</div>
 									</div>
-								</div>
-							) : <div className='text-center text-lg font-semibold mt-24'>No Conversations</div>
-					}
+								) : <div className='text-center text-lg font-semibold mt-24'>No Conversations</div>
+						}
+					</div>
 				</div>
 			</div>
 		</div>
+	)
+}
+
+const FileTypeMsg = ({ msg, updatedAt }) => {
+	function downloadFile(e, fileName) {
+		e.preventDefault()
+		let downloadOrignalUrl = `${process.env.REACT_APP_SERVER_FILE_IMG_URL}/file/${fileName}`
+		try {
+			fetch(downloadOrignalUrl).then(res => res.blob()).then(blob => {
+				const url = window.URL.createObjectURL(blob)
+				const a = document.createElement('a')
+				a.style.display = "none"
+				a.href = url
+				const nameSplit = downloadOrignalUrl.split("/").pop()
+				a.download = "" + nameSplit + ""
+				document.body.appendChild(a)
+				a.click()
+				window.URL.revokeObjectURL(url)
+			}).catch(error => console.log("Error while downloading file", error.message))
+		} catch (error) {
+			console.log("Error while downloading file", error.message)
+		}
+	}
+	return (
+		<>
+			<div>
+				{
+					msg?.includes('.pdf') ? <div>
+						<div style={{ overflowX: 'hidden', msOverflowY: 'hidden' }} >
+							<iframe src={`${process.env.REACT_APP_SERVER_FILE_IMG_URL}/file/${msg}`} className='pdfSize' width={190} height={90} scol />
+						</div>
+						<div className='flex justify-between'>
+							<div>
+								<p className='text-xs mt-1 pdftext'>{msg}</p>
+							</div>
+							<div className='content-center grid'>
+								<MdFileDownload
+									size={18}
+									className='rounded-lg border-2 border-black'
+									onClick={(e) => downloadFile(e, msg)}
+								/>
+							</div>
+						</div>
+
+						<div className='msg-time '>
+							<span className='pt-0.5' style={{ color: '#b71c1c' }}><IoMdStopwatch /></span>{formateDate(updatedAt)}
+						</div>
+					</div> : <div>
+						<img src={`${process.env.REACT_APP_SERVER_FILE_IMG_URL}/file/${msg}`} height={10} />
+						<div className='flex justify-between'>
+							<div>
+								<p className='text-xs mt-1 imgtext'>{msg}</p>
+							</div>
+							<div className='content-center grid'>
+								<MdFileDownload
+									size={18}
+									className='rounded-lg border-2 border-black'
+									onClick={(e) => downloadFile(e, msg)}
+								/>
+							</div>
+						</div>
+						<div className='msg-time '>
+							<span className='pt-0.5' style={{ color: '#b71c1c' }}><IoMdStopwatch /></span>{formateDate(updatedAt)}
+						</div>
+					</div>
+				}
+			</div>
+		</>
+	)
+}
+const TextMsg = ({ msg, updatedAt }) => {
+	return (
+		<>
+			<div>{msg}</div>
+			<div className='msg-time '>
+				<span className='pt-0.5' style={{ color: '#b71c1c' }}><IoMdStopwatch /></span>{formateDate(updatedAt)}
+			</div>
+		</>
 	)
 }
 
