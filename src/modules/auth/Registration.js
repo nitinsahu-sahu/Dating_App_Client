@@ -3,7 +3,7 @@ import { ButtonModule, InputModule, LabelModule, SelectModule } from '../../comp
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../../redux/action/userAuth.action';
-
+import OptionName from '../../components/staticData';
 const Registration = () => {
     const dispatch = useDispatch()
     const auth = useSelector(state => state.userAuth);
@@ -23,12 +23,6 @@ const Registration = () => {
         { value: 'men', label: 'Men' },
         { value: 'women', label: 'Women' },
         { value: 'both', label: 'Both' },
-    ];
-    const intentOptions = [
-        { value: 'long-term partner', label: 'Long-term partner' },
-        { value: 'long-term, open to short', label: 'Long-term, open to short' },
-        { value: 'short-term, open to long', label: 'Short-term, open to long' },
-        { value: 'new friends', label: 'New friends' },
     ];
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -172,7 +166,7 @@ const Registration = () => {
                     <div className="mb-2 w-[75%]">
                         <LabelModule title="Intent" for="intent" class="block text-gray-800 pb-0.2" />
                         <SelectModule
-                                options={intentOptions}
+                                options={OptionName}
                                 value={data.intent} 
                                 onChange={(e) => setData({ ...data, intent: e.target.value })}
                                 id="intent"

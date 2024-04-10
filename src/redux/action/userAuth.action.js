@@ -30,7 +30,6 @@ export const editPersonalINfo = (userdata,_id) => {
       type: authConstants.UPDATE_USER_INFO_REQUEST
     });
     await axios.patch(`/update-info/${_id}`, userdata).then(function (response) {
-      console.log(response);
       const user = response.data.updateData;
       localStorage.setItem('u_info', JSON.stringify(user));
       dispatch({

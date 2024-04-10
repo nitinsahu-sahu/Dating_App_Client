@@ -12,6 +12,12 @@ body {
   user-select: none;
 }
 
+P {
+  font-size: 11px;
+  color: darkslategray;
+  margin-top: -1px;
+}
+
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -40,8 +46,8 @@ code {
 }
 
 .mp-profile {
-  height: 50px;
-  width: 50px;
+  height: 40px;
+  width: 40px;
 }
 
 .bg-peach {
@@ -80,10 +86,19 @@ code {
   bottom: 12px;
 }
 
-
+embed{
+  overflow: hidden;
+}
 
 .msg-time {
   display: flex;
   justify-content: end;
   font-size: 9px;
+}
+
+
+#information-edit-dropbox{
+  height: 98vh;
+  top: 6px;
+  left: 6px;
 }
