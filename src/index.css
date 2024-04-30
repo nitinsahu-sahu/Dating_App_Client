@@ -82,12 +82,27 @@ code {
   width: 10px;
   border-radius: 10px;
   position: relative;
-  left: 38px;
-  bottom: 12px;
 }
 
-embed{
+.offline {
+  height: 10px;
+  width: 10px;
+  border-radius: 10px;
+  position: relative;
+  left: 38px;
+  bottom: 20px;
+}
+
+embed {
   overflow: hidden;
+}
+
+.arrow:hover {
+  display: block;
+}
+
+.arrow {
+  display: none;
 }
 
 .msg-time {
@@ -97,8 +112,73 @@ embed{
 }
 
 
-#information-edit-dropbox{
+#information-edit-dropbox {
   height: 98vh;
   top: 6px;
   left: 6px;
+}
+
+.msgDropBox:hover {
+  display: block;
+}
+
+.msgDropBox {
+  display: none;
+}
+
+/* --------------------------------------------- */
+#msg-menu .MuiPaper-elevation ul li {
+  font-size: 11px;
+  line-height: 0.5;
+}
+
+.deleteModelContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background-color: #E5E7EB;
+  border: 2px solid #000;
+  padding: 32px
+}
+
+.icons {
+  color: black;
+}
+
+@media (min-width: 1024px) {
+  .last_msg_panal {
+    width: 140px !important
+  }
+
+  .msg-overflow {
+    overflow-wrap: anywhere;
+    font-size: 12px;
+  }
+  
+}
+
+@media (min-width: 700px) {
+  .last_msg_panal {
+    overflow: scroll;
+    width: 98px;
+  }
+
+  .msg-overflow {
+    overflow-wrap: anywhere;
+    font-size: 10px;
+
+  }
+
+}
+
+@media (min-width: 649px) {
+  .msg-overflow {
+    overflow-wrap: anywhere;
+    font-size: 12px;
+
+  }
+
+ 
 }

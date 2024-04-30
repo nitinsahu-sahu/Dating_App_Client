@@ -6,7 +6,7 @@ const ImageComponent = ({ alt, externalClass, srcLink }) => {
         <img
             src={`${process.env.REACT_APP_SERVER_IMG_URL}/${srcLink}`}
             className={
-                `p-[2px] rounded-full min-w-10 ${externalClass} `
+                `p-[2px] rounded-full h-8 w-8 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 border border-primary ${externalClass} `
             }
             alt={alt}
         />
@@ -19,20 +19,20 @@ const EmptyTextComponent = ({ emptyText }) => {
     )
 }
 
-const ConvAndUserPanel = ({ index, onClick, user, displayUser, externalClass }) => {
+const ConvAndUserPanel = ({ index, onClick, user, displayUser, externalClass, messages }) => {
     return (
         <div key={index} className={`flex items-center py-2 mb-1 border-b border-b-gray-300 ${displayUser} ${externalClass}`}>
             <div className='cursor-pointer md:container columns-2 flex items-center' onClick={onClick}>
                 <div className='min-w-30'>
                     <ImageComponent
                         srcLink={user?.profile}
-                        externalClass="mp-profile border border-primary"
+                        // externalClass="sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 border border-primary"
                         alt={user?.fullname}
                     />
                 </div>
                 <div className='ml-3'>
-                    <h4 className='capitalize font-semibold'>{user?.fullname}</h4>
-                    <p >{user?.email}</p>
+                    <h4 className='sm:text-xs md:text-sm lg:text-base font-semibold capitalize'>{user?.fullname}</h4>
+                    <p className='last_msg_panal'>{user?.email}</p>
                 </div>
             </div>
         </div>

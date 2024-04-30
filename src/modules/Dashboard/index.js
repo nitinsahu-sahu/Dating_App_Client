@@ -10,7 +10,7 @@ import { getAllUsers } from '../../redux/action/allusers.action.js';
 import FileTypeMsg from './FileTypeMsg.js';
 import TextTypeMsg from './TextTypeMsg.js';
 import Webcam from "react-webcam";
-import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
+import { uniqueNamesGenerator, adjectives } from 'unique-names-generator';
 
 //React Icons
 import { MdOutlineEmojiEmotions } from "react-icons/md";
@@ -20,48 +20,57 @@ import { FaPhotoFilm } from "react-icons/fa6";
 import { FaCameraRetro } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
 import { GoPlusCircle } from "react-icons/go";
-import { InforEditDropbox, MenuDropbox } from '../../components/dropbox/InforEditDropbox.js';
+import { InforEditDropbox } from '../../components/dropbox/InforEditDropbox.js';
 import { base64ToImage } from '../../components/common-component/Base67ToFile.js';
-
-
-
+import { ClipLoader } from 'react-spinners';
+import { IconButton } from '@mui/material';
+import { Dropdown } from '../../components/dropdown/Dropdown.js';
+import { fetchMessagesbyConvId } from '../../redux/action/message.action.js';
+import { GiCardRandom } from "react-icons/gi";
 const Dashboard = () => {
 	const users = useSelector(state => state.usersList.allusers);
 	const isLoginUser = useSelector(state => state.userAuth.user);
+	const individualMsgList = useSelector(state => state.allMessages.messages);
 	const dispatch = useDispatch()
 	const info = JSON.parse(localStorage.getItem("u_info"))
 	const [conversations, setConversations] = useState([])
 	const [messages, setMessages] = useState({})
+	// const [mobileView, setMobileView] = useState(false)
 	const [message, setMessage] = useState('')
 	const [socket, setSocket] = useState(null)
 	const [online, setOnline] = useState([])
 	const [url, setUrl] = useState(null)
 	const [pdfurl, setpdfUrl] = useState(null)
 	const [imagevideourl, setimagevideoUrl] = useState(null)
-	const [fileError, setFileError] = useState(null)
-	const [uploadPdfFile, setUploadPdfFile] = useState('')
 	const [anchorEl, setAnchorEl] = useState(null);
+	const open = Boolean(anchorEl);
 	const [emojiShow, setEmojiShow] = useState(false)
 	const [plusMenuShow, setPlusMenuShow] = useState(false)
 	const [cameraShow, setCameraShow] = useState(false)
 	const [searchPeople, setSearchPeople] = useState('')
 	const [searchConv, setSearchConv] = useState('')
+	const PicandVideoInputFile = useRef(null)
+	const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+	const [isConvId, setIsConvId] = useState()
 	const webcamRef = useRef(null)
 	const docsInputFile = useRef(null);
 	const messageRef = useRef(null)
-	const PicandVideoInputFile = useRef(null)
-	const open = Boolean(anchorEl);
-
+	const handleClick = (event) => {
+		setAnchorEl(event.currentTarget);
+	};
+	const handleClose = () => {
+		setAnchorEl(null);
+	};
 	//--------- Socket Related Method---------------
 	useEffect(() => {
 		setSocket(io('http://localhost:8080'))
 	}, [])
+
 	useEffect(() => {
 		socket?.emit('addUser', info?._id);
 		socket?.on('getUsers', users => {
 			setOnline(users);
 		})
-
 		socket?.on('getMessage', data => {
 			setMessages(prev => ({
 				...prev,
@@ -79,12 +88,7 @@ const Dashboard = () => {
 	}, [socket])
 	//-----------------------------------------------
 
-	const handleClick = (event) => {
-		setAnchorEl(event.currentTarget);
-	};
-	const handleClose = () => {
-		setAnchorEl(null);
-	};
+
 	useEffect(() => {
 		dispatch(getAllUsers())
 	}, [])
@@ -105,13 +109,18 @@ const Dashboard = () => {
 		fetchConversations()
 	}, [messages])
 
+	useEffect(() => {
+		setMessages(individualMsgList)
+	}, [individualMsgList])
+
+
+	
+
+
 	const fetchMessages = async (conversationId, receiver) => {
-		await axios.get(`/message/${conversationId}?senderId=${info?._id}&&receiverId=${receiver?.receiverId}`).then(function (response) {
-			setMessages({ messages: response?.data, receiver, conversationId })
-		}).catch((error) => {
-			console.log("Conversation not found");
-		})
+		dispatch(fetchMessagesbyConvId(conversationId, receiver, info?._id))
 	}
+
 
 	const handleEmojiSelect = (emoji) => {
 		setMessage(prev => prev + emoji.native)
@@ -181,13 +190,11 @@ const Dashboard = () => {
 						type: "file"
 					}
 					axios.post(`/message`, msginfo).then(function (response) {
-						setUploadPdfFile(null);
-
 					}).catch((error) => {
 						console.log("Conversation not found");
 					})
 				}).catch((error) => {
-					setFileError(error.response.data.message);
+					console.log(error.response.data.message);
 				})
 			}
 		}
@@ -227,7 +234,7 @@ const Dashboard = () => {
 						console.log("Conversation not found");
 					})
 				}).catch((errors) => {
-					setFileError(errors.message);
+					console.log(errors.message);
 				})
 			}
 		}
@@ -236,7 +243,7 @@ const Dashboard = () => {
 
 	}, [imagevideourl])
 
-	
+
 	//----------------capture image ------------------------
 	const lowerCaseName = uniqueNamesGenerator({
 		dictionaries: [adjectives],
@@ -303,50 +310,63 @@ const Dashboard = () => {
 		setPlusMenuShow(!plusMenuShow)
 	};
 
-	//-----------------------------------------------All type filters------------------------------------------------------
+	//-----------------------------------------------All type filters---------------------------------------------------------------//
 	let isUserOnline = online.some(onlinedata => onlinedata.userId === isLoginUser._id);
-	let filteredOnlineArray = users.filter(item1 => online.some(item2 => item2.userId === item1._id));
-	let displayUser = users.filter(item1 => conversations.some(item2 => item2.user.receiverId === item1._id));
-	let searchPeoplesForUsers = users.filter(item => item.fullname.toLowerCase().includes(searchPeople.toLocaleLowerCase()))
-	let filterConv = conversations.filter(item => item?.user?.fullname.toLowerCase().includes(searchConv.toLocaleLowerCase()))
-	//----------------------------------------------*********-----------------------------------------------------------------
+	let filteredOnlineArray = users.filter(item1 => online.some(item2 => item2.userId === item1._id));								//
+	let displayUser = users.filter(item1 => conversations.some(item2 => item2.user.receiverId === item1._id));						//
+	let searchPeoplesForUsers = users.filter(item => item.fullname.toLowerCase().includes(searchPeople.toLocaleLowerCase()))		//
+	let filterConv = conversations.filter(item => item?.user?.fullname.toLowerCase().includes(searchConv.toLocaleLowerCase()))		//
+	//----------------------------------------------*********-----------------------------------------------------------------------//
 
-
-
+	const fetchMsgData = (convId, userData) => {
+		fetchMessages(convId, userData)
+		let covData = {
+			convId, userData, _id: info?._id
+		}
+		setIsConvId(covData)
+	}
+	
 	return (
-		<div className='w-screen flex'>
+		<div className='w-screen md:flex lg:flex'>
 			{/* ------------------------------Messages Section Code/ Left Section------------------------------------------------ */}
-			<div className='w-[20%] h-screen bg-secondary'>
+			<div className='sm:w-[100%] md:w-[25%] lg:w-[20%] h-screen bg-secondary'>
 				<div className='items-center my-1 mx-1'>
 					<div className='flex justify-between'>
 						<div className='flex'>
-							<div className='cursor-pointer grid content-center' data-drawer-target="information-edit-dropbox" data-drawer-show="information-edit-dropbox" aria-controls="information-edit-dropbox" >
-								<div>
+							<div className='cursor-pointer flex self-center' onClick={() => setIsDrawerOpen(true)} >
 									<ImageComponent
 										srcLink={info?.profile}
-										externalClass="sm:h-7 sm:w-7 md:h-12 md:w-12 border border-primary"
 										alt={info?.fullname}
 									/>
-									<div className={`online border-4 ${isUserOnline ? 'border-success' : 'border-denger'}`}></div>
-
-								</div>
+									{
+										isUserOnline ? <div className={`online border-4 border-success sm:right-2 sm:top-4 md:right-2 md:top-7 lg:right-1 lg:top-7`}></div> : <div className='offline'><ClipLoader
+											color={'red'}
+											size={10}
+											aria-label="Loading Spinner"
+											data-testid="loader"
+										/>
+										</div>
+									}
 							</div>
-							<div className='ml-4 self-center'>
-								<h4 className='sm:text-sm md:text-base lg:text-base font-semibold'>{info?.fullname}</h4>
-								<p>{info?.intent}</p>
+							<div className=' lg:ml-1 self-center'>
+								<h4 className='sm:text-xs md:text-sm lg:text-base font-semibold'>{info?.fullname}</h4>
+								<p className='sm:text-xs md:text-xs lg:sm'>{info?.intent}</p>
 							</div>
 						</div>
-						<div
-							className='grid content-center cursor-pointer'
-							id="basic-button"
-							aria-controls={open ? 'burgger-menu' : undefined}
-							aria-haspopup="true"
-							aria-expanded={open ? 'true' : undefined}
-							onClick={handleClick}
-						>
-							<HiDotsVertical size={20} />
+						<div className='self-center'>
+							<IconButton
+								aria-label="more"
+								id="long-button"
+								aria-controls={open ? 'long-menu' : undefined}
+								aria-expanded={open ? 'true' : undefined}
+								aria-haspopup="true"
+								onClick={handleClick}
+							>
+								<HiDotsVertical className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons'/>
+							</IconButton>
+							<Dropdown anchorEl={anchorEl} open={open} handleClose={handleClose} />
 						</div>
-						<MenuDropbox anchorEl={anchorEl} open={open} handleClose={handleClose} />
+						<InforEditDropbox  setIsDrawerOpen={() => setIsDrawerOpen(false)} isDrawerOpen={isDrawerOpen} />
 					</div>
 				</div>
 				<hr />
@@ -363,24 +383,26 @@ const Dashboard = () => {
 				<hr />
 				<InforEditDropbox />
 				<div className='mx-3 mt-5'>
-					<div className='text-primary text-lg'>Messages</div>
+					<div className='sm:text-xs md:text-sm lg:text-base font-bold'>Messages</div>
 					<div>
 						{
 							filterConv.length > 0 ?
 								filterConv.map(({ conversationId, user }, index) => {
 									return (
-										<ConvAndUserPanel index={index} onClick={() => fetchMessages(conversationId, user)} user={user} />
+										<ConvAndUserPanel index={index} messages={messages} onClick={() => fetchMsgData(conversationId, user)} user={user} />
 									)
 								}) : <EmptyTextComponent emptyText="No conversation" />
 						}
 					</div>
 				</div>
+				{/* gopluscircle-icon icon icon-tabler cursor-pointer icon-tabler-send h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons */}
+				<GiCardRandom className='icon icon-tabler icon-tabler-send md:hidden lg:hidden ' size={35}/>
 			</div>
 			{/* ------------------------------People Chat Section Code/ Middle Section------------------------------------------------ */}
-			<div className='w-[60%] h-screen bg-white flex flex-col items-center'>
+			<div className='hidden sm:hidden md:block lg:block sm:w-[100%] md:w-[50%] lg:w-[60%] h-screen bg-white flex flex-col items-center'>
 				{
 					messages?.receiver?.fullname &&
-					<div className='w-[75%] bg-secondary h-[80px] my-14 rounded-full flex items-center px-14 py-2'>
+					<div className='w-[75%] bg-secondary sm:h-[80px] md:h-[70px] lg:h-[80px] my-8 rounded-full items-center px-14 py-2 mx-auto flex'>
 						<div className='cursor-pointer'>
 							<ImageComponent
 								srcLink={messages?.receiver?.profile}
@@ -411,8 +433,8 @@ const Dashboard = () => {
 						<div className='flex justify-center my-2'>
 							<ButtonModule onClick={capture} btnname="Capture picture" />
 						</div>
-					</div> : <div className='h-[75%] w-full overflow-scroll shadow-sm'>
-						<div className='py-14 px-8'>
+					</div> : <div className='sm:h-[74%] md:h-[74%] lg:h-[74%] w-full overflow-scroll shadow-sm'>
+						<div className='py-4 px-8'>
 							{
 								messages?.messages?.length > 0 ?
 									messages.messages.map(
@@ -421,7 +443,10 @@ const Dashboard = () => {
 												type,
 												message,
 												user,
-												updatedAt
+												updatedAt,
+												msgId,
+												senderDeleteStatus,
+												receiverDeleteStatus
 											}, index
 										) => {
 											return (
@@ -429,23 +454,45 @@ const Dashboard = () => {
 													{
 														user?._id === isLoginUser?._id ? <div
 															key={index}
-															className={`max-w-[29%] rounded-b-xl p-2 mb-6 bg-secondary rounded-tl-xl ml-auto`}
+															className={`sm:max-w-[48%] md:max-w-[45%] lg:max-w-[29%] rounded-b-xl p-2 mb-2 bg-secondary rounded-tl-xl ml-auto`}
 														>
-															{type === 'file' ? <FileTypeMsg msg={message} updatedAt={updatedAt} /> : <TextTypeMsg msg={message} updatedAt={updatedAt} />}
+															{
+																type === 'file' ?
+																	<FileTypeMsg msg={message} updatedAt={updatedAt} />
+																	:
+																	<TextTypeMsg
+																		msg={message}
+																		updatedAt={updatedAt}
+																		msgId={msgId}
+																		own='right'
+																		isConvId={isConvId}
+																		right_msg_status={senderDeleteStatus}
+																	/>
+															}
 														</div>
 															:
 															<div
 																key={index}
-																className="max-w-[29%] rounded-b-xl p-2 mb-6 bg-primary text-white rounded-tr-xl mr-auto"
+																className="sm:max-w-[48%] md:max-w-[45%] lg:max-w-[29%] rounded-b-xl p-2 mb-2 bg-primary text-white rounded-tr-xl mr-auto"
 															>
-																{type === 'file' ? <FileTypeMsg msg={message} updatedAt={updatedAt} /> : <TextTypeMsg msg={message} updatedAt={updatedAt} />}
+																{
+																	type === 'file' ?
+																		<FileTypeMsg msg={message} updatedAt={updatedAt} />
+																		:
+																		<TextTypeMsg
+																			msg={message}
+																			updatedAt={updatedAt}
+																			msgId={msgId}
+																			own='left'
+																			isConvId={isConvId}
+																		/>}
 															</div>
 													}
 													<div ref={messageRef}></div>
 												</>
 											)
 										}
-									) : <div className='text-center text-lg font-semibold mt-24'>No Messages or No Conversation Selected</div>
+									) : <div className='sm:text-xs md:text-sm lg:text-base font-semibold capitalize text-center mt-24'>No Messages or No Conversation Selected</div>
 							}
 						</div>
 					</div>
@@ -454,7 +501,7 @@ const Dashboard = () => {
 					messages?.receiver?.fullname &&
 					<div className='p-5 w-full flex items-center'>
 						<div className='mr-4 p-2 cursor-pointer bg-light rounded-full' >
-							<MdOutlineEmojiEmotions size={24} onClick={() => setEmojiShow(!emojiShow)} />
+							<MdOutlineEmojiEmotions className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons' onClick={() => setEmojiShow(!emojiShow)} />
 							{
 								emojiShow ? <div className='picker'><Picker data={data} onEmojiSelect={handleEmojiSelect} /></div> : null
 							}
@@ -466,13 +513,13 @@ const Dashboard = () => {
 							class='w-[75%] p-4 border-0 shadow-md rounded-full bg-light focus:ring-0 focus:border-0 outline-none'
 						/>
 						<div className={`ml-4 p-2 cursor-pointer bg-light rounded-full ${!message && 'pointer-events-none'}`} onClick={() => sendMessage()}>
-							<FiSend size={24} className="icon icon-tabler icon-tabler-send" />
+							<FiSend size={24} className="icon icon-tabler icon-tabler-send className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons'" />
 						</div>
 						<div className={`ml-4 p-2  bg-light rounded-full`} >
 							<div onClick={() => setPlusMenuShow(!plusMenuShow)} >
 								<GoPlusCircle
 									size={24}
-									className="gopluscircle-icon icon icon-tabler cursor-pointer icon-tabler-send"
+									className="gopluscircle-icon icon icon-tabler cursor-pointer icon-tabler-send h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons"
 								/>
 							</div>
 							<span>
@@ -501,12 +548,10 @@ const Dashboard = () => {
 
 				}
 			</div>
-
 			{/* ------------------------------People Section Code/ Right Section------------------------------------------------ */}
-
-			<div className='w-[20%] h-screen bg-light py-7 overflow-scroll'>
+			<div className='hidden sm:hidden md:block lg:block sm:w-[100%] md:w-[25%] lg:w-[20%] h-screen bg-light py-7 overflow-scroll'>
 				<div>
-					<div className='text-primary text-lg my-2 px-4'>People</div>
+					<div className='sm:text-xs md:text-sm lg:text-base font-bold my-2 px-4'>People</div>
 					<hr />
 					<div className='flex justify-center'>
 						<InputModule
@@ -530,6 +575,7 @@ const Dashboard = () => {
 				</div>
 			</div>
 		</div>
+
 	)
 }
 

@@ -28,6 +28,9 @@
   color: #61dafb;
 }
 
+.css-4t3x6l-MuiPaper-root-MuiDrawer-paper{
+  width: 24%;
+}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
