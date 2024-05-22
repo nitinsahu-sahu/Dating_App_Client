@@ -25,48 +25,46 @@ const FileTypeMsg = ({ msg, updatedAt }) => {
     }
     return (
         <>
-            <div>
-                {
-                    msg?.includes('.pdf') ? <div>
-                        <div>
-                            <iframe src={`${process.env.REACT_APP_SERVER_FILE_IMG_URL}/file/${msg}`} className='pdfSize' width={190} height={90} />
+            {
+                msg?.includes('.pdf') ? <div>
+                    <div className="grid justify-center">
+                        <iframe src={`${process.env.REACT_APP_SERVER_FILE_IMG_URL}/file/${msg}`} className='h-28 w-28' />
+                    </div>
+                    <div className='flex justify-between'>
+                        <div style={{ width: '9rem', height: '35px', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                            <p className='text-xs mt-1 pdftext '>{msg}</p>
                         </div>
-                        <div className='flex justify-between'>
-                            <div style={{width:'9rem', height:'35px', textOverflow:'ellipsis', overflow:'hidden'}}>
-                                <p className='text-xs mt-1 pdftext '>{msg}</p>
-                            </div>
-                            <div className='content-center grid'>
-                                <MdFileDownload
-                                    size={18}
-                                    className='rounded-lg border-2 border-black'
-                                    onClick={(e) => downloadFile(e, msg)}
-                                />
-                            </div>
-                        </div>
-
-                        <div className='msg-time '>
-                            <span className='pt-0.5' style={{ color: '#b71c1c' }}><IoMdStopwatch /></span>{formateDate(updatedAt)}
-                        </div>
-                    </div> : <div>
-                        <img src={`${process.env.REACT_APP_SERVER_FILE_IMG_URL}/file/${msg}`} height={10} />
-                        <div className='flex justify-between'>
-                            <div style={{width:'9rem'}}>
-                                <p className='text-xs mt-1 imgtext'>{msg}</p>
-                            </div>
-                            <div className='content-center grid'>
-                                <MdFileDownload
-                                    size={18}
-                                    className='rounded-lg border-2 border-black'
-                                    onClick={(e) => downloadFile(e, msg)}
-                                />
-                            </div>
-                        </div>
-                        <div className='msg-time '>
-                            <span className='pt-0.5' style={{ color: '#b71c1c' }}><IoMdStopwatch /></span>{formateDate(updatedAt)}
+                        <div className='content-center grid'>
+                            <MdFileDownload
+                                size={18}
+                                className='rounded-lg border-2 border-black'
+                                onClick={(e) => downloadFile(e, msg)}
+                            />
                         </div>
                     </div>
-                }
-            </div>
+
+                    <div className='msg-time '>
+                        <span className='pt-0.5' style={{ color: '#b71c1c' }}><IoMdStopwatch /></span>{formateDate(updatedAt)}
+                    </div>
+                </div> : <div>
+                    <img src={`${process.env.REACT_APP_SERVER_FILE_IMG_URL}/file/${msg}`} height={10} />
+                    <div className='flex justify-between'>
+                        <div style={{ width: '9rem' }}>
+                            <p className='text-xs mt-1 imgtext'>{msg}</p>
+                        </div>
+                        <div className='content-center grid'>
+                            <MdFileDownload
+                                size={18}
+                                className='rounded-lg border-2 border-black'
+                                onClick={(e) => downloadFile(e, msg)}
+                            />
+                        </div>
+                    </div>
+                    <div className='msg-time '>
+                        <span className='pt-0.5' style={{ color: '#b71c1c' }}><IoMdStopwatch /></span>{formateDate(updatedAt)}
+                    </div>
+                </div>
+            }
         </>
     )
 }

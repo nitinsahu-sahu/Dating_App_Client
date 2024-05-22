@@ -20,13 +20,17 @@ import { FaPhotoFilm } from "react-icons/fa6";
 import { FaCameraRetro } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
 import { GoPlusCircle } from "react-icons/go";
-import { InforEditDropbox } from '../../components/dropbox/InforEditDropbox.js';
+import { InforEditDropbox, RandomUserDropbox } from '../../components/dropbox/InforEditDropbox.js';
 import { base64ToImage } from '../../components/common-component/Base67ToFile.js';
 import { ClipLoader } from 'react-spinners';
 import { IconButton } from '@mui/material';
-import { Dropdown } from '../../components/dropdown/Dropdown.js';
+import { Dropdown, ReceiverDropBox } from '../../components/dropdown/Dropdown.js';
 import { fetchMessagesbyConvId } from '../../redux/action/message.action.js';
 import { GiCardRandom } from "react-icons/gi";
+import { RxDropdownMenu } from "react-icons/rx";
+import ContactInfo from '../../components/common-component/recivercomponent/index.js';
+
+
 const Dashboard = () => {
 	const users = useSelector(state => state.usersList.allusers);
 	const isLoginUser = useSelector(state => state.userAuth.user);
@@ -44,13 +48,17 @@ const Dashboard = () => {
 	const [imagevideourl, setimagevideoUrl] = useState(null)
 	const [anchorEl, setAnchorEl] = useState(null);
 	const open = Boolean(anchorEl);
+	const [anchorE2, setAnchorE2] = useState(null);
+	const open2 = Boolean(anchorE2);
 	const [emojiShow, setEmojiShow] = useState(false)
+	const [showContactInfo, setShowContactInfo] = useState(false)
 	const [plusMenuShow, setPlusMenuShow] = useState(false)
 	const [cameraShow, setCameraShow] = useState(false)
 	const [searchPeople, setSearchPeople] = useState('')
 	const [searchConv, setSearchConv] = useState('')
 	const PicandVideoInputFile = useRef(null)
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+	const [isRandomContact, setIsRandomContact] = useState(false)
 	const [isConvId, setIsConvId] = useState()
 	const webcamRef = useRef(null)
 	const docsInputFile = useRef(null);
@@ -61,11 +69,17 @@ const Dashboard = () => {
 	const handleClose = () => {
 		setAnchorEl(null);
 	};
+
+	const handleClick2 = (event) => {
+		setAnchorE2(event.currentTarget);
+	};
+	const handleClose2 = () => {
+		setAnchorE2(null);
+	};
 	//--------- Socket Related Method---------------
 	useEffect(() => {
 		setSocket(io('http://localhost:8080'))
 	}, [])
-
 	useEffect(() => {
 		socket?.emit('addUser', info?._id);
 		socket?.on('getUsers', users => {
@@ -81,7 +95,8 @@ const Dashboard = () => {
 						message: data.message,
 						updatedAt: data.updatedAt,
 						type: data.type,
-					}
+					},
+
 				]
 			}))
 		})
@@ -113,14 +128,9 @@ const Dashboard = () => {
 		setMessages(individualMsgList)
 	}, [individualMsgList])
 
-
-	
-
-
 	const fetchMessages = async (conversationId, receiver) => {
 		dispatch(fetchMessagesbyConvId(conversationId, receiver, info?._id))
 	}
-
 
 	const handleEmojiSelect = (emoji) => {
 		setMessage(prev => prev + emoji.native)
@@ -130,18 +140,19 @@ const Dashboard = () => {
 	const openDocsFile = () => {
 		docsInputFile.current.click();
 	};
+
 	const handleDocsFileChange = event => {
 		setpdfUrl(event.target.files[0]);
 
 	};
+
 	const openPicandVideoFile = () => {
 		PicandVideoInputFile.current.click();
 	};
+
 	const handlePicandVideoFileChange = event => {
 		setimagevideoUrl(event.target.files[0]);
 	};
-
-
 
 	const sendMessage = async (e) => {
 		setMessage('')
@@ -243,12 +254,12 @@ const Dashboard = () => {
 
 	}, [imagevideourl])
 
-
 	//----------------capture image ------------------------
 	const lowerCaseName = uniqueNamesGenerator({
 		dictionaries: [adjectives],
 		style: 'lowerCase'
 	});
+
 	useEffect(() => {
 		const getCaptureImage = async () => {
 			if (url) {
@@ -296,6 +307,7 @@ const Dashboard = () => {
 		height: 820,
 		facingMode: "user"
 	};
+
 	const capture = useCallback(
 		() => {
 			const imageSrc = webcamRef.current.getScreenshot();
@@ -325,7 +337,7 @@ const Dashboard = () => {
 		}
 		setIsConvId(covData)
 	}
-	
+
 	return (
 		<div className='w-screen md:flex lg:flex'>
 			{/* ------------------------------Messages Section Code/ Left Section------------------------------------------------ */}
@@ -334,22 +346,22 @@ const Dashboard = () => {
 					<div className='flex justify-between'>
 						<div className='flex'>
 							<div className='cursor-pointer flex self-center' onClick={() => setIsDrawerOpen(true)} >
-									<ImageComponent
-										srcLink={info?.profile}
-										alt={info?.fullname}
+								<ImageComponent
+									srcLink={info?.profile}
+									alt={info?.fullname}
+								/>
+								{
+									isUserOnline ? <div className={`online border-4 border-success sm:right-2 sm:top-4 md:right-2 md:top-7 lg:right-1 lg:top-7`}></div> : <div className='offline'><ClipLoader
+										color={'red'}
+										size={10}
+										aria-label="Loading Spinner"
+										data-testid="loader"
 									/>
-									{
-										isUserOnline ? <div className={`online border-4 border-success sm:right-2 sm:top-4 md:right-2 md:top-7 lg:right-1 lg:top-7`}></div> : <div className='offline'><ClipLoader
-											color={'red'}
-											size={10}
-											aria-label="Loading Spinner"
-											data-testid="loader"
-										/>
-										</div>
-									}
+									</div>
+								}
 							</div>
 							<div className=' lg:ml-1 self-center'>
-								<h4 className='sm:text-xs md:text-sm lg:text-base font-semibold'>{info?.fullname}</h4>
+								<h4 className='sm:text-xs md:text-sm lg:text-base font-semibold capitalize'>{info?.fullname}</h4>
 								<p className='sm:text-xs md:text-xs lg:sm'>{info?.intent}</p>
 							</div>
 						</div>
@@ -362,11 +374,11 @@ const Dashboard = () => {
 								aria-haspopup="true"
 								onClick={handleClick}
 							>
-								<HiDotsVertical className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons'/>
+								<HiDotsVertical className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons' />
 							</IconButton>
 							<Dropdown anchorEl={anchorEl} open={open} handleClose={handleClose} />
 						</div>
-						<InforEditDropbox  setIsDrawerOpen={() => setIsDrawerOpen(false)} isDrawerOpen={isDrawerOpen} />
+						<InforEditDropbox setIsDrawerOpen={() => setIsDrawerOpen(false)} isDrawerOpen={isDrawerOpen} />
 					</div>
 				</div>
 				<hr />
@@ -395,14 +407,16 @@ const Dashboard = () => {
 						}
 					</div>
 				</div>
-				{/* gopluscircle-icon icon icon-tabler cursor-pointer icon-tabler-send h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons */}
-				<GiCardRandom className='icon icon-tabler icon-tabler-send md:hidden lg:hidden ' size={35}/>
+				<div onClick={() => setIsRandomContact(!isRandomContact)}>
+					<GiCardRandom className='cursor-pointer icon-tabler icon-tabler-send md:hidden lg:hidden intercom-lightweight-app-launcher' />
+				</div>
+				<RandomUserDropbox setIsDrawerOpen={() => setIsRandomContact(false)} isDrawerOpen={isRandomContact} />
 			</div>
 			{/* ------------------------------People Chat Section Code/ Middle Section------------------------------------------------ */}
 			<div className='hidden sm:hidden md:block lg:block sm:w-[100%] md:w-[50%] lg:w-[60%] h-screen bg-white flex flex-col items-center'>
 				{
 					messages?.receiver?.fullname &&
-					<div className='w-[75%] bg-secondary sm:h-[80px] md:h-[70px] lg:h-[80px] my-8 rounded-full items-center px-14 py-2 mx-auto flex'>
+					<div className='w-[75%] bg-secondary my-8 rounded-full items-center px-14 py-2 mx-auto flex'>
 						<div className='cursor-pointer'>
 							<ImageComponent
 								srcLink={messages?.receiver?.profile}
@@ -416,6 +430,17 @@ const Dashboard = () => {
 								filteredOnlineArray.map((item) => console.log("hii"))
 							}
 						</div>
+						<IconButton
+							aria-label="more"
+							id="receiver-button"
+							aria-controls={open2 ? 'receiver-dropbox' : undefined}
+							aria-expanded={open2 ? 'true' : undefined}
+							aria-haspopup="true"
+							onClick={handleClick2}
+						>
+							<RxDropdownMenu className='cursor-pointer h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons' />
+						</IconButton>
+						<ReceiverDropBox anchorEl={anchorE2} open={open2} handleClose={handleClose2} setShowContactInfo={setShowContactInfo} showContactInfo={showContactInfo} />
 					</div>
 				}
 				{
@@ -433,47 +458,30 @@ const Dashboard = () => {
 						<div className='flex justify-center my-2'>
 							<ButtonModule onClick={capture} btnname="Capture picture" />
 						</div>
-					</div> : <div className='sm:h-[74%] md:h-[74%] lg:h-[74%] w-full overflow-scroll shadow-sm'>
-						<div className='py-4 px-8'>
-							{
-								messages?.messages?.length > 0 ?
-									messages.messages.map(
-										(
-											{
-												type,
-												message,
-												user,
-												updatedAt,
-												msgId,
-												senderDeleteStatus,
-												receiverDeleteStatus
-											}, index
-										) => {
-											return (
-												<>
-													{
-														user?._id === isLoginUser?._id ? <div
-															key={index}
-															className={`sm:max-w-[48%] md:max-w-[45%] lg:max-w-[29%] rounded-b-xl p-2 mb-2 bg-secondary rounded-tl-xl ml-auto`}
-														>
-															{
-																type === 'file' ?
-																	<FileTypeMsg msg={message} updatedAt={updatedAt} />
-																	:
-																	<TextTypeMsg
-																		msg={message}
-																		updatedAt={updatedAt}
-																		msgId={msgId}
-																		own='right'
-																		isConvId={isConvId}
-																		right_msg_status={senderDeleteStatus}
-																	/>
-															}
-														</div>
-															:
-															<div
+					</div>
+						:
+						showContactInfo ? <ContactInfo setShowContactInfo={setShowContactInfo} showContactInfo={showContactInfo} /> : <div className='h-[63%] w-full overflow-scroll shadow-sm'>
+							<div className='py-4 px-8'>
+								{
+									messages?.messages?.length > 0 ?
+										messages.messages.map(
+											(
+												{
+													type,
+													message,
+													user,
+													updatedAt,
+													msgId,
+													senderDeleteStatus,
+													receiverDeleteStatus
+												}, index
+											) => {
+												return (
+													<>
+														{
+															user?._id === isLoginUser?._id ? <div
 																key={index}
-																className="sm:max-w-[48%] md:max-w-[45%] lg:max-w-[29%] rounded-b-xl p-2 mb-2 bg-primary text-white rounded-tr-xl mr-auto"
+																className={`sm:max-w-[48%] md:max-w-[45%] lg:max-w-[29%] rounded-b-xl p-2 mb-2 bg-secondary rounded-tl-xl ml-auto`}
 															>
 																{
 																	type === 'file' ?
@@ -483,68 +491,87 @@ const Dashboard = () => {
 																			msg={message}
 																			updatedAt={updatedAt}
 																			msgId={msgId}
-																			own='left'
+																			own='right'
 																			isConvId={isConvId}
-																		/>}
+																			right_msg_status={senderDeleteStatus}
+																		/>
+																}
 															</div>
-													}
-													<div ref={messageRef}></div>
-												</>
-											)
-										}
-									) : <div className='sm:text-xs md:text-sm lg:text-base font-semibold capitalize text-center mt-24'>No Messages or No Conversation Selected</div>
-							}
+																:
+																<div
+																	key={index}
+																	className="sm:max-w-[48%] md:max-w-[45%] lg:max-w-[29%] rounded-b-xl p-2 mb-2 bg-primary text-white rounded-tr-xl mr-auto"
+																>
+																	{
+																		type === 'file' ?
+																			<FileTypeMsg msg={message} updatedAt={updatedAt} />
+																			:
+																			<TextTypeMsg
+																				msg={message}
+																				updatedAt={updatedAt}
+																				msgId={msgId}
+																				own='left'
+																				isConvId={isConvId}
+																			/>}
+																</div>
+														}
+														<div ref={messageRef}></div>
+													</>
+												)
+											}
+										) : <div className='sm:text-xs md:text-sm lg:text-base font-semibold capitalize text-center mt-24'>No Messages or No Conversation Selected</div>
+								}
+							</div>
 						</div>
-					</div>
 				}
 				{
-					messages?.receiver?.fullname &&
-					<div className='p-5 w-full flex items-center'>
-						<div className='mr-4 p-2 cursor-pointer bg-light rounded-full' >
-							<MdOutlineEmojiEmotions className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons' onClick={() => setEmojiShow(!emojiShow)} />
-							{
-								emojiShow ? <div className='picker'><Picker data={data} onEmojiSelect={handleEmojiSelect} /></div> : null
-							}
-
-						</div>
-						<InputModule
-							placeholder='Type a message...'
-							value={message} onChange={(e) => setMessage(e.target.value)}
-							class='w-[75%] p-4 border-0 shadow-md rounded-full bg-light focus:ring-0 focus:border-0 outline-none'
-						/>
-						<div className={`ml-4 p-2 cursor-pointer bg-light rounded-full ${!message && 'pointer-events-none'}`} onClick={() => sendMessage()}>
-							<FiSend size={24} className="icon icon-tabler icon-tabler-send className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons'" />
-						</div>
-						<div className={`ml-4 p-2  bg-light rounded-full`} >
-							<div onClick={() => setPlusMenuShow(!plusMenuShow)} >
-								<GoPlusCircle
-									size={24}
-									className="gopluscircle-icon icon icon-tabler cursor-pointer icon-tabler-send h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons"
-								/>
-							</div>
-							<span>
+					showContactInfo ? null : messages?.receiver?.fullname &&
+						<div className='p-5 w-full flex items-center'>
+							<div className='mr-4 p-2 cursor-pointer bg-light rounded-full' >
+								<MdOutlineEmojiEmotions className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons' onClick={() => setEmojiShow(!emojiShow)} />
 								{
-									plusMenuShow ? <div tabIndex='-1' className='_2sDI2 _1b6oD'>
-										<div className='m-2 flex border-2 rounded-md' onClick={openDocsFile} style={{ color: "#58D68D" }}>
-											<IoDocumentTextOutline size={28} className="mr-2 icon icon-tabler icon-tabler-send" />
-											<h2 className='font-semibold'>Document</h2>
-											<input type='file' ref={docsInputFile} onChange={handleDocsFileChange} accept='*' className='hidden' />
-										</div>
-										<div className='m-2 flex border-2 rounded-md' onClick={openPicandVideoFile} style={{ color: "#5499C7 " }} >
-											<FaPhotoFilm size={28} className="mr-2 icon icon-tabler icon-tabler-send" />
-											<h2 className='font-semibold'>Photo & Video</h2>
-											<input type='file' ref={PicandVideoInputFile} onChange={handlePicandVideoFileChange} accept='image/*,video/mp4,video/3gpp,video/quicktime' className='hidden' />
-										</div>
-										<div className='m-2 flex border-2 rounded-md' onClick={() => openCameraWebCam()} style={{ color: "#D98880 " }} >
-											<FaCameraRetro size={28} className=" mr-2 icon icon-tabler icon-tabler-send" />
-											<h2 className='font-semibold'>Camera</h2>
-										</div>
-									</div> : null
+									emojiShow ? <div className='picker'><Picker data={data} onEmojiSelect={handleEmojiSelect} /></div> : null
 								}
-							</span>
-						</div>
 
-					</div>
+							</div>
+							<InputModule
+								placeholder='Type a message...'
+								value={message} onChange={(e) => setMessage(e.target.value)}
+								class='w-[75%] p-4 border-0 shadow-md rounded-full bg-light focus:ring-0 focus:border-0 outline-none'
+							/>
+							<div className={`ml-4 p-2 cursor-pointer bg-light rounded-full ${!message && 'pointer-events-none'}`} onClick={() => sendMessage()}>
+								<FiSend size={24} className="icon icon-tabler icon-tabler-send className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons'" />
+							</div>
+							<div className={`ml-4 p-2  bg-light rounded-full`} >
+								<div onClick={() => setPlusMenuShow(!plusMenuShow)} >
+									<GoPlusCircle
+										size={24}
+										className="gopluscircle-icon icon icon-tabler cursor-pointer icon-tabler-send h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 icons"
+									/>
+								</div>
+								<span>
+									{
+										plusMenuShow ? <div tabIndex='-1' className='_2sDI2 _1b6oD'>
+											<div className='m-2 flex border-2 rounded-md' onClick={openDocsFile} style={{ color: "#58D68D" }}>
+												<IoDocumentTextOutline size={28} className="mr-2 icon icon-tabler icon-tabler-send" />
+												<h2 className='font-semibold'>Document</h2>
+												<input type='file' ref={docsInputFile} onChange={handleDocsFileChange} accept='*' className='hidden' />
+											</div>
+											<div className='m-2 flex border-2 rounded-md' onClick={openPicandVideoFile} style={{ color: "#5499C7 " }} >
+												<FaPhotoFilm size={28} className="mr-2 icon icon-tabler icon-tabler-send" />
+												<h2 className='font-semibold'>Photo & Video</h2>
+												<input type='file' ref={PicandVideoInputFile} onChange={handlePicandVideoFileChange} accept='image/*,video/mp4,video/3gpp,video/quicktime' className='hidden' />
+											</div>
+											<div className='m-2 flex border-2 rounded-md' onClick={() => openCameraWebCam()} style={{ color: "#D98880 " }} >
+												<FaCameraRetro size={28} className=" mr-2 icon icon-tabler icon-tabler-send" />
+												<h2 className='font-semibold'>Camera</h2>
+											</div>
+										</div> : null
+									}
+								</span>
+							</div>
+
+						</div>
 
 				}
 			</div>
@@ -568,7 +595,14 @@ const Dashboard = () => {
 						{
 							searchPeoplesForUsers?.length > 0 ?
 								searchPeoplesForUsers?.map((item, index) =>
-									<ConvAndUserPanel index={index} onClick={() => fetchMessages('new', item)} user={item} displayUser={displayUser.map((data) => data._id === item._id ? "hidden" : null).join('')} externalClass='mt-2' />
+									<ConvAndUserPanel
+										users="followuser"
+										index={index}
+										onClick={() => fetchMessages('new', item)}
+										user={item}
+										displayUser={displayUser.map((data) => data._id === item._id ? "hidden" : null).join('')}
+										externalClass='mt-2'
+									/>
 								) : <EmptyTextComponent emptyText="No Conversations" />
 						}
 					</div>

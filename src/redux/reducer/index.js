@@ -6,6 +6,7 @@ import chatReducer from './userChat.reducer'
 import conversationReducer from './conversation.reducer'
 import usersChatReducer from './usersChat.reducer'
 import fetchMessagesReducers from './message.reducer'
+import receiverReducer from './receiverInfo'
 
 const rootReducer = combineReducers({
     userAuth: authReducer,
@@ -14,6 +15,7 @@ const rootReducer = combineReducers({
     chatUser: chatReducer,
     currentConversation: conversationReducer,
     chats: usersChatReducer,
-    allMessages: fetchMessagesReducers
+    allMessages: fetchMessagesReducers,
+    chatterInfo: receiverReducer
 })
 export default rootReducer

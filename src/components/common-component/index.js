@@ -1,5 +1,8 @@
 import React from 'react'
 import { IoDocumentTextOutline } from 'react-icons/io5'
+import { ButtonModule, FollowUnfollowModule } from '../formField/FormField'
+import { useDispatch, useSelector } from 'react-redux'
+import { userFollow } from '../../redux/action/allusers.action'
 
 const ImageComponent = ({ alt, externalClass, srcLink }) => {
     return (
@@ -19,14 +22,22 @@ const EmptyTextComponent = ({ emptyText }) => {
     )
 }
 
-const ConvAndUserPanel = ({ index, onClick, user, displayUser, externalClass, messages }) => {
+const ConvAndUserPanel = ({ index, onClick, user, displayUser, externalClass, users }) => {
+    const peoples = useSelector(state => state.usersList.allusers);
+    const isUserLogin = useSelector(state => state.userAuth.user._id);
+
+    let dispatch = useDispatch()
+    let followuser = (userData) => {
+        dispatch(userFollow(userData._id))
+    }
+
+    const isFollowing = peoples.some(obj => obj.followers.includes(isUserLogin));
     return (
-        <div key={index} className={`flex items-center py-2 mb-1 border-b border-b-gray-300 ${displayUser} ${externalClass}`}>
+        <div key={index} className={`items-center py-2 mb-1 border-b border-b-gray-300 ${displayUser} ${externalClass}`}>
             <div className='cursor-pointer md:container columns-2 flex items-center' onClick={onClick}>
                 <div className='min-w-30'>
                     <ImageComponent
                         srcLink={user?.profile}
-                        // externalClass="sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 border border-primary"
                         alt={user?.fullname}
                     />
                 </div>
@@ -35,6 +46,18 @@ const ConvAndUserPanel = ({ index, onClick, user, displayUser, externalClass, me
                     <p className='last_msg_panal'>{user?.email}</p>
                 </div>
             </div>
+            {
+                users === "followuser" ? <div className='flex justify-end'>
+                    {
+                        isFollowing ?
+                            <FollowUnfollowModule typ="submit" cn="w-[75%] mb-1" btnname="unfollow" />
+                            :
+                            <FollowUnfollowModule typ="submit" cn="w-[75%] mb-1" btnname="Follow" onClick={() => followuser(user)} />
+
+                    }
+                </div> : null
+            }
+
         </div>
     )
 }

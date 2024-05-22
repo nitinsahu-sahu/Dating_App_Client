@@ -10,7 +10,9 @@ const initialState = {
     number: '',
     dob: '',
     showme: '',
-    intent: ''
+    intent: '',
+    followers: [],
+    following: []
   },
   authenticate: false,
   authenticating: true,
@@ -65,28 +67,6 @@ const authReducer = (state = initialState, action) => {
         loading: true
       }
       break;
-
-
-    // case authConstants.UPDATE_PROFILE_REQUEST:
-    //   state = {
-    //     ...state,
-    //     loading: true
-    //   }
-    //   break;
-    // case authConstants.UPDATE_PROFILE_SUCCESS:
-    //   state = {
-    //     ...state,
-    //     user: action.payload.user,
-    //     message: action.payload.message,
-    //   }
-    //   break;
-    // case authConstants.UPDATE_PROFILE_FAILURE:
-    //   state = {
-    //     ...state,
-    //     error: action.payload.error,
-    //     loading: true
-    //   }
-    //   break;
 
     case authConstants.LOGOUT_REQUEST:
       state = {

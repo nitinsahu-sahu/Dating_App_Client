@@ -64,10 +64,21 @@ const InforEditDropbox = ({ isDrawerOpen, setIsDrawerOpen }) => {
                                 onChange={handleFileChange}
                                 accept='image/*'
                             />
-                            <FiEdit size={20} className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-6 lg:w-6 mt-12 cursor-pointer text-denger' onClick={openFile} />
+                            <FiEdit size={20} className='h-5 w-5 sm:h-2 sm:w-2 md:h-4 md:w-4 lg:h-5 lg:w-5 mt-8 cursor-pointer text-denger' onClick={openFile} />
                         </div>
                     </div>
                     <div className='mt-4 bg-pink px-3'>
+                        <div className='flex pb-1 pt-3 justify-between'>
+                            <div className='w-[75%]'>
+                                <p className='sm:text-xs md:text-sm lg:text-base font-bold'>Followers</p>
+                                <p className='ml-1'>{info?.followers.length}</p>
+                            </div>
+                            <div className='self-center'>
+                            <p className='sm:text-xs md:text-sm lg:text-base font-bold'>Following</p>
+                            <p className='ml-1'>{info?.following.length}</p>
+
+                            </div>
+                        </div>
                         <div className='flex pb-1 pt-3 justify-between'>
                             <div className='w-[75%]'>
                                 <p className='sm:text-xs md:text-sm lg:text-base font-bold'>Fullname</p>
@@ -189,6 +200,14 @@ const InforEditDropbox = ({ isDrawerOpen, setIsDrawerOpen }) => {
 }
 
 
+const RandomUserDropbox = ({ isDrawerOpen, setIsDrawerOpen }) => {
+    return (
+        <Drawer anchor='right' open={isDrawerOpen} onClose={setIsDrawerOpen} className='md:hidden lg:hidden'>
+            ,Hiii
+        </Drawer>
+
+    )
+}
 const MenuDropbox = ({ open, anchorEl, handleClose }) => {
     const dispatch = useDispatch()
 
@@ -216,4 +235,4 @@ const MenuDropbox = ({ open, anchorEl, handleClose }) => {
     )
 }
 
-export { MenuDropbox, InforEditDropbox }
+export { MenuDropbox, InforEditDropbox, RandomUserDropbox }

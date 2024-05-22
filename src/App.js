@@ -37,7 +37,6 @@ function App() {
 
   return (
     <Routes>
-
       <Route element={<Protected />} >
         <Route path='/' element={loading ? <HashLoader color="#0e6c29" cssOverride={{
           display: "block",

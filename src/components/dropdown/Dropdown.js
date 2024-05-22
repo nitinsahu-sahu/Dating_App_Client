@@ -27,8 +27,8 @@ const Dropdown = ({ anchorEl, handleClose, open, msgId }) => {
                 },
             }}
         >
-            <MenuItem onClick={handleClose}>
-                Setting
+            <MenuItem onClick={handleClose} >
+                <div className='sm:text-sm md:text-base lg:text-lg capitalize'>Setting</div>
             </MenuItem>
             <MenuItem onClick={() => logoutFun()}>
                 Logout
@@ -64,7 +64,7 @@ const MsgDropdown = ({ anchorEl, handleClose, open, msgId, own, isConvId, right_
             <MenuItem onClick={handleOpenModel}>
                 Delete
             </MenuItem>
-            <DeleteModel open={openModel} handleClose={handleCloseModel} handleClosemen={handleClose} msgId={msgId} own={own} isConvId={isConvId} right_msg_status={right_msg_status}/>
+            <DeleteModel open={openModel} handleClose={handleCloseModel} handleClosemen={handleClose} msgId={msgId} own={own} isConvId={isConvId} right_msg_status={right_msg_status} />
             <MenuItem onClick={handleClose}>
                 Forward
             </MenuItem>
@@ -75,5 +75,43 @@ const MsgDropdown = ({ anchorEl, handleClose, open, msgId, own, isConvId, right_
     )
 }
 
+const ReceiverDropBox = ({ anchorEl, handleClose, open, setShowContactInfo, showContactInfo}) => {
+    const ITEM_HEIGHT = 45;
+    const ContactInfo = () => {
+        handleClose(false)
+        setShowContactInfo(!showContactInfo)
+    }
+    return (
+        <Menu
+            id="receiver-dropbox"
+            MenuListProps={{
+                'aria-labelledby': 'receiver-button',
+            }}
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            paper={{
+                style: {
+                    maxHeight: ITEM_HEIGHT * 4.5,
+                    width: '20ch',
+                    left: '123px'
+                },
+            }}
+        >
+            <MenuItem onClick={handleClose} >
+                Close chat
+            </MenuItem>
+            <MenuItem onClick={handleClose} >
+                Select message
+            </MenuItem>
+            <MenuItem onClick={() => ContactInfo()} >
+                Contact info
+            </MenuItem>
+            <MenuItem onClick={handleClose}>
+                Block
+            </MenuItem>
+        </Menu>
+    )
+}
 
-export { Dropdown, MsgDropdown }
+export { Dropdown, MsgDropdown, ReceiverDropBox }

@@ -23,7 +23,11 @@ module.exports = {
         'peach': "#FFECE2",
         'pink': "#FFE6E6",
         'leafgreen': "#1A2421",
+        'fb-btn': '#1877f2'
       },
+      padding: {
+        '38': '9.2rem',
+      }
     },
   },
   plugins: [

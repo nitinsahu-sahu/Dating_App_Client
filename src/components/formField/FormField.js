@@ -52,4 +52,17 @@ const ButtonModule = (props) => {
     )
 }
 
-export { TextAreaComponents, ButtonModule, InputModule, LabelModule, SelectModule }
+const FollowUnfollowModule = ({ typ, onClick, btnname }) => {
+    return (
+        <button
+            type={typ}
+            className={
+                `py-1 m-1 px-2 text-white bg-primary hover:bg-primary focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm text-center`
+            }
+            onClick={onClick}
+        >
+            {btnname}
+        </button>
+    )
+}
+export { TextAreaComponents, ButtonModule, InputModule, LabelModule, SelectModule, FollowUnfollowModule }

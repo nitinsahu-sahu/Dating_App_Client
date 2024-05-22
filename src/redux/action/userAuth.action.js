@@ -19,12 +19,12 @@ export const updateProfilePic = (formData) => {
         }
       })
     }).catch(function (error) {
-      console.log('error',error.message);
+      console.log('error', error.message);
     });
   }
 }
 // ----------------Create User-------------------
-export const editPersonalINfo = (userdata,_id) => {
+export const editPersonalINfo = (userdata, _id) => {
   return async (dispatch) => {
     dispatch({
       type: authConstants.UPDATE_USER_INFO_REQUEST
@@ -40,7 +40,7 @@ export const editPersonalINfo = (userdata,_id) => {
         }
       })
     }).catch(function (error) {
-      console.log('error',error.message);
+      console.log('error', error.message);
     });
   }
 }
@@ -71,12 +71,13 @@ export const register = (formData) => {
 }
 
 // --------------User login------------------------
-export const userLogin = (data) => {
+export const userLogin = (data, loginWith) => {
+  console.log('hahaa', data, loginWith);
   return async (dispatch) => {
     dispatch({
       type: authConstants.LOGIN_REQUEST
     });
-    await axios.post(`/signin`, data).then(function (response) {
+    await axios.post(loginWith=="googleLogin" ? `/auth/socialLogin` : `/signin`, data).then(function (response) {
       const token = response.data.token;
       const user = response.data.data;
       localStorage.setItem('u_token', token);
